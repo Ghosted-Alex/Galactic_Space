@@ -4,7 +4,7 @@ import pathlib
 
 import pygame
 
-import config
+import src.config as config
 
 pygame.mixer.init()
 

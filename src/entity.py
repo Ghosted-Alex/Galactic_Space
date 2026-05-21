@@ -2,9 +2,9 @@
 
 import pygame
 
-import assets
-import config
-import bullet
+import src.assets as assets
+import src.config as config
+import src.bullet as bullet
 
 class Player:
     """Instance Class for player"""

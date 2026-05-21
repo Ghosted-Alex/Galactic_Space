@@ -1,6 +1,6 @@
 "Module for Animations"
 
-from config import *
+from src.config import *
 
 import subprocess
 import pygame

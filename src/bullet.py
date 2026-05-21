@@ -2,8 +2,8 @@
 
 import subprocess
 import pygame
-import config
-import assets
+import src.config as config
+import src.assets as assets
 
 class Normal:
     def __init__(self, x, y, image=None):

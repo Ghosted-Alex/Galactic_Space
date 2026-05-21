@@ -6,11 +6,11 @@ import os
 import random
 import subprocess
 import pygame
-import assets
-import config
-import entity
-import powerup
-import bullet
+import src.assets as assets
+import src.config as config
+import src.entity as entity
+import src.powerup as powerup
+import src.bullet as bullet
 
 def initialize():
     global FPS, SCR

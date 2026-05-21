@@ -1,6 +1,6 @@
 """Module for Powerups """
-import assets
-import config
+import src.assets as assets
+import src.config as config
 import pygame
 
 class Spawn:

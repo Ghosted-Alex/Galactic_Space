@@ -9,15 +9,17 @@ This repository archives game versions, showcases upcoming features, and serves 
 
 > [!NOTE]
 > The Makey Makey is currently only available in the MakeCode Arcade Version, no plans in the Pygame version
+>
+> There are plans however for adding Controller support in pygame
 
 ---
 
 ## Licenses
 
 
-[![MIT](https://img.shields.io/badge/Code-MIT-green)](https://github.com/Ghosted-Alex/Galactic_Space/blob/main/LICENSE_MIT)
+[![MIT](https://img.shields.io/badge/Code-MIT-green)](https://github.com/Ghosted-Alex/Galactic_Space_Reborn/blob/main/LICENSE_MIT)
 <br />
-[![CCO](https://img.shields.io/badge/Assets-CCO-blue)](https://github.com/Ghosted-Alex/Galactic_Space/blob/main/LICENSE_CCO)
+[![CCO](https://img.shields.io/badge/Assets-CCO-blue)](https://github.com/Ghosted-Alex/Galactic_Space_Reborn/blob/main/LICENSE_CCO)
 
 ---
 
@@ -40,7 +42,7 @@ There are 2 ways to download/play the game currently:
 
 - You can Git Clone the Repo by using 
     ```bash
-    git clone https://github.com/Ghosted-Alex/Galactic_Space
+    git clone https://github.com/Ghosted-Alex/Galactic_Space_Reborn
     ```
 
 - Or you can go to the [releases](https://github.com/Ghosted-Alex/Galactic_Space_Reborn/releases) and click one of the releases and click/tap `Galactic Space Beta #.# Here`
@@ -54,8 +56,8 @@ There are 2 ways to download/play the game currently:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/Ghosted-Alex/Galactic_Space.git
-   cd Galactic_Space
+   git clone https://github.com/Ghosted-Alex/Galactic_Space_Reborn
+   cd Galactic_Space_Reborn
    ```
 2. Install Dependancies:
     ```bash
@@ -68,22 +70,10 @@ There are 2 ways to download/play the game currently:
 
 ---
 
-## Game Updates
+### Game Updates
 
-![Version Badge](https://img.shields.io/badge/Version-Dev_Build_7.4.1-Yellow)
-![Update Badge](https://img.shields.io/badge/Update_Type-Hotfix-blue)
+#### Major Engine Overhaul
 
-#### Error Control!
+- 
 
-- Added Verbosity-Type Error Handling to `assets.py`
-
----
-
-## Repo Updates:
-
-![Update Badge](https://img.shields.io/badge/Update_Type-Minor-purple)
-
-- Changes to README and is now more detatiled and more Informational
-
-> [!NOTE]
-> Repo Updates are only here if major repo related changes happen, Game Updates are above in the `Game Updates` section.
+[Full Changelog](./FULL_CHANGELOG.md)
