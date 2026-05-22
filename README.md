@@ -72,8 +72,27 @@ There are 2 ways to download/play the game currently:
 
 ### Game Updates
 
+![Version Badge](https://img.shields.io/badge/Version-Dev_Build_8-green)
+![Update Badge](https://img.shields.io/badge/Update_Type-Major-red)
+
 #### Major Engine Overhaul
 
-- 
+- Seperated UI and Updates to `ui.py` and `update.py` respectively
+- Added `ui.py`
+- Added `update.py`
+- Moved `animation.py`, `assets.py`, `bullet.py`, `entity.py`, `powerup.py` into `src` folder
+- Added `src` and `assets` folders
 
-[Full Changelog](./FULL_CHANGELOG.md)
+### [Full Changelog](./FULL_CHANGELOG.md)
+
+---
+
+#### REPO UPDATES
+
+- Added `FULL_CHANGELOG.md`
+
+> [!NOTE]
+> Repo Updates are only included if major updates to the repo take place,
+> please note that the new `FULL_CHANGELOG.md` file will NOT
+> include repo updates and the `Game Updates` section will be maxed out at 10 bulletpoints,
+> the rest will be put into `FULL_CHANGELOG.md` file.
