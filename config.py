@@ -1,18 +1,9 @@
 "Config Module"
 
-import os
-import subprocess
-import math
 import pygame
 import pathlib
-import datetime
 
-<<<<<<< HEAD
-WIN_PATH = os.getcwd()
-
-=======
 WIN_PATH = pathlib.Path(__file__).resolve().parent
->>>>>>> 8da15c44f4c070c58bb4faba08c2557537738336
 SPRITE_SCALING = 6
 
 error = 0000
@@ -60,13 +51,10 @@ health_blink_timer = 60
 
 game_over = False
 game_over_ui_shown = False
-<<<<<<< HEAD
-=======
 
 class Keybinds:
     restart_key = pygame.K_r
     quit_key = pygame.K_ESCAPE
->>>>>>> 8da15c44f4c070c58bb4faba08c2557537738336
 
 class Screen:
     "Base Class for Screen"
@@ -80,6 +68,17 @@ class Screen:
 class Game:
     title = "Galactic Space Reborn"
     running = True
+
+module_paths = [
+    "main",
+    "config",
+    "src.animation",
+    "src.assets",
+    "src.bullet",
+    "src.entity_management",
+    "src.entity",
+    "src.powerup"
+]
 
 if __name__ == "__main__":
     print("Execution of module detected! Please run main.py for the game to work properly.")

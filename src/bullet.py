@@ -1,13 +1,11 @@
 "Module for Bullet"
 
-import subprocess
-import pygame
-import src.config as config
 import src.assets as assets
 
 class Normal:
     def __init__(self, x, y, image=None):
         self.image = image if image else assets.Textures.Bullet.blank
+        self.speed = 25
         self.rect = self.image.get_rect(topleft=(x, y))
 
     def update(self):

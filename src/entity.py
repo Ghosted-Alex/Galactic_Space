@@ -2,9 +2,8 @@
 
 import pygame
 
-import src.assets as assets
-import src.config as config
-import src.bullet as bullet
+from . import assets
+import config
 
 class Player:
     """Instance Class for player"""
@@ -31,7 +30,7 @@ class Player:
         """Blits the player texture\n
         Draws a white hitbox rectangle (if debug mode is on)"""
         # Draw the actual ship sprite
-        surface.blit(self.image, self.rect)
+        surface.blit(self.texture, self.rect)
         # Draw the white outline (useful for debugging hitboxes!)
         if config.debug:
             pygame.draw.rect(surface, (51, 255, 51), self.rect, 1)
