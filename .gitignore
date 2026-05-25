@@ -35,5 +35,4 @@ build/
 .pytest_cache/
 
 # Misc Files
-high_score.txt
-goals.md
+*.txt
