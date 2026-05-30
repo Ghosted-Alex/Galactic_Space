@@ -97,5 +97,5 @@ There are 2 ways to download/play the game currently:
 > [!NOTE]
 > Repo Updates are only included if major updates to the repo take place,
 > please note that the new `FULL_CHANGELOG.md` file will NOT
-> include repo updates and the `Game Updates` section will be maxed out at 10 bulletpoints,
+> include repo updates and the `Game Updates` section will be maxed out at 5 bulletpoints,
 > the rest will be put into `FULL_CHANGELOG.md` file.
