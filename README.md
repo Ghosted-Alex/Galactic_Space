@@ -3,7 +3,7 @@
 ![Status Badge](https://img.shields.io/badge/Status-In_Development-orange)
 ![Version Badge](https://img.shields.io/badge/Version-Dev_Build_7.4.1-green)
 
-**Galactic Space** is a fast-paced space shooter where you blast enemies, collect power-ups, and dodge obstacles. Play with a keyboard or Makey Makey. Fight through increasingly difficult levels and take down bosses to prove who can achieve the highest score.
+**Galactic Space Reborn** is a fast-paced space shooter where you blast enemies, collect power-ups, and dodge obstacles. Fight through increasingly difficult levels and take down bosses to prove who can achieve the highest score.
 
 This repository archives game versions, showcases upcoming features, and serves as the home for `Project: Galaxy`.
 
@@ -16,9 +16,7 @@ This repository archives game versions, showcases upcoming features, and serves 
 
 ## Licenses
 
-
-[![MIT](https://img.shields.io/badge/Code-MIT-green)](https://github.com/Ghosted-Alex/Galactic_Space_Reborn/blob/main/LICENSE_MIT)
-<br />
+[![MIT](https://img.shields.io/badge/Code-MIT-green)](https://github.com/Ghosted-Alex/Galactic_Space_Reborn/blob/main/LICENSE_MIT)\
 [![CCO](https://img.shields.io/badge/Assets-CCO-blue)](https://github.com/Ghosted-Alex/Galactic_Space_Reborn/blob/main/LICENSE_CCO)
 
 ---
@@ -29,18 +27,18 @@ This repository archives game versions, showcases upcoming features, and serves 
 |--------------|:----------------:|:------------------:|
 | **Python**   | 3.10             | 3.13               |
 | **Pygame**   | 2.1.3            | 2.5.7              |
-
-
+| **Json5**    | 0.10.0           | 0.14.0             |
 
 ## Download & How to Play
 
-#### Download
+### Download
 
 You can download the assets and source code of the game
 
 There are 2 ways to download/play the game currently:
 
-- You can Git Clone the Repo by using 
+- You can Git Clone the Repo by using
+
     ```bash
     git clone https://github.com/Ghosted-Alex/Galactic_Space_Reborn
     ```
@@ -55,15 +53,20 @@ There are 2 ways to download/play the game currently:
 #### How to Play
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/Ghosted-Alex/Galactic_Space_Reborn
    cd Galactic_Space_Reborn
    ```
+
 2. Install Dependancies:
+
     ```bash
-    pip install pygame
+    pip install -r requirements.txt
     ```
+
 3. Run the Game:
+
     ```bash
     python main.py
     ```

@@ -4,20 +4,41 @@
 
 # General Imports
 import os
+import pathlib
 import random
 import subprocess
 import pygame
+import configparser
 
 pygame.init()
 
 # Source Imports
-import src.assets as assets
 import config
-import src.entity as entity
-import src.powerup as powerup
-import src.bullet as bullet
-import src.update as update
-import src.ui as ui
+
+from src import assets
+from src import entity
+from src import powerup
+from src import bullet
+from src import update
+from src import ui
+from src import controls
+
+def load_settings(settings_path=pathlib.Path(f"{config.WIN_PATH}/settings.ini")):
+    parser = configparser.ConfigParser()
+    parser.read(settings_path)
+    
+    # Pre-computed map for speed
+    key_map = {attr[2:].lower(): getattr(pygame, attr) for attr in dir(pygame) if attr.startswith("K_")}
+    
+    for section in parser.sections():
+        if hasattr(config.KeyBinds, section):
+            category = getattr(config.KeyBinds, section)
+            for key, value in parser.items(section):
+                # Look up the key constant
+                # (You might need a small mapping function here to handle 'kp_plus' vs 'plus')
+                key_const = key_map.get(value.lower())
+                if key_const:
+                    setattr(category, key, key_const)
 
 def initialize():
     global FPS, SCR
@@ -52,48 +73,6 @@ def game_over():
             file.write(str(config.high_score))
         print("High Score Saved!")
 
-def draw_game_over_ui(surface):
-    config.game_over_ui_shown = True
-
-    # 1. Create a temporary surface with the same size as the screen
-    # pygame.SRCALPHA makes it capable of transparency
-    overlay = pygame.Surface((config.Screen.Size.w, config.Screen.Size.h), pygame.SRCALPHA)
-    
-    # 2. Fill it with a semi-transparent color (R, G, B, Alpha)
-    # Alpha 128 is 50% transparent (0 is invisible, 255 is solid)
-    overlay.fill((0, 0, 0, 150)) 
-    
-    # 3. Blit the overlay onto the main screen
-    surface.blit(overlay, (0, 0))
-
-    # 4. Let the game know that the game over UI was shown
-    config.game_over_ui_shown = True
-
-    if config.score > config.high_score:
-        config.high_score = config.score
-    else:
-        with open(config.HIGH_SCORE_FILE, "r") as file:
-            config.high_score = int(file.read().strip())
-
-    # 5. Create text lines
-    if config.score < config.high_score:
-        score_go_str = assets.monocraft.render(f"Score: {config.score}", True, (255, 255, 255))
-        print("Regular Score")
-    else:
-        score_go_str = assets.monocraft.render(f"New High Score!", True, (255, 180, 0))
-        print("")
-    hi_score_go_str = assets.monocraft.render(f"High Score: {config.high_score}", True, (255, 255, 255))
-
-    ins_restart = assets.monocraft.render(f"Press \"{pygame.key.name(config.Keybinds.restart_key, False)}\" to Restart Game", True, (255, 255, 255))
-
-    # 6. Draw the UI on top
-    surface.blit(assets.Textures.UI.game_over, (318, 225))
-    surface.blit(score_go_str, (318, 275))
-    surface.blit(hi_score_go_str, (318, 315))
-
-    surface.blit(ins_restart, (215, 500))
-
-
 if not config.HIGH_SCORE_FILE_EXISTS:
     with open(config.HIGH_SCORE_FILE, "w") as file:
         file.write(str(config.high_score))
@@ -107,9 +86,6 @@ while config.Game.running:
     FPS.tick(60)
 
     config.frame += 1
-
-    if config.error != 0:
-        config.Game.running = False
 
     if config.game_over == False:
         if config.blink_timer < 60:
@@ -125,14 +101,14 @@ while config.Game.running:
             # Check for the initial key press here
             if event.type == pygame.KEYDOWN:
                 if config.debug:
-                    if event.key == pygame.K_KP_PLUS:
+                    if controls.single_press(event, config.KeyBinds.Debug.numpad_plus):
                         if config.score < 10:
                             config.score += 10
                         else:
                             config.score += config.score * 10
-                    if event.key == pygame.K_1:
+                    if controls.single_press(event, config.KeyBinds.Debug.numrow_1):
                         game_over()
-                if event.key == pygame.K_SPACE or event.key == pygame.K_z:
+                if controls.single_press(event, config.KeyBinds.Gameplay.shoot):
                     if config.game_over == False:
                         # Create the bullet at the player's current position
                         if player.energy > 0:
@@ -149,10 +125,7 @@ while config.Game.running:
         if not config.Game.running:
             break
 
-        
-        
         keys = pygame.key.get_pressed()
-
 
         # RENDERING
         # Inside your "RENDERING" section in main.py
@@ -174,7 +147,7 @@ while config.Game.running:
             new_enemy = entity.Enemy(random.randint(48, 874), -75, assets.Textures.Enemy.enemy0, 0)
             enemies.append(new_enemy)
         
-        if config.delay == random.randint(1, 60): # Trigger exactly halfway through the enemy spawn cycle
+        if config.delay == random.randint(1, 60): # Trigger randomly within the 60 frames per second
             chance = random.randint(0, 99)
             print(f"Roll (%): {chance}")
 
@@ -184,13 +157,14 @@ while config.Game.running:
                 new_powerup = powerup.Spawn(random.randint(48, 874), -75, 0)
                 powerups.append(new_powerup)
                 
-            # Check for Ammunition (Independent or Else-If)
-            if player.energy <= 95 and 16 <= chance <= 50:
+            # Check for Ammunition
+            elif player.energy <= 95 and 16 <= chance <= 50:
                 print("Ammo Powerup Summoned!")
                 new_powerup = powerup.Spawn(random.randint(48, 874), -75, 2)
                 powerups.append(new_powerup)
             
-            if config.powerup_active == False:
+            # Check for Active Powerup
+            elif config.powerup_active == False:
                 # Check for 5% Chance, regardless of health and ammo
                 if 50 <= chance <= 55:
                     print("Power Wrench Powerup Summoned!")
@@ -214,7 +188,7 @@ while config.Game.running:
         config.score = min(config.score, 999999)
         config.high_score = min(config.high_score, 999999)
 
-        ui.show_panel_ui(SCR, player=player)
+        ui.draw_panel_ui(SCR, player=player)
 
     else:
         # This runs when the game is over
@@ -268,14 +242,8 @@ while config.Game.running:
                 pygame.draw.rect(SCR, config.AMMO_COLOR, (reverse_x, 656, energy_width, 25))
 
             # Draw the transparent GUI
-            draw_game_over_ui(SCR)
+            ui.draw_game_over_ui(screen=SCR)
 
     pygame.display.flip()
-
-
-print(f"Exited with error code: {config.error}")
-if config.error_text != "":
-    print(f"[{config.datetime.datetime.now()}] CRITICAL: Task failed in: {config.error_origin.name}")
-    print(f"Code: {config.error} | Message: {config.error_text}")
 
 pygame.quit()

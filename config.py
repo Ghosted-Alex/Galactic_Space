@@ -2,13 +2,38 @@
 
 import pygame
 import pathlib
+from typing import TypeAlias, Union, Tuple
+
+KeyLike: TypeAlias = Union[int, Tuple[int, ...]]
+
+class KeyBinds:
+    """
+    Configuration class for mapping input keys to actions.
+
+    Usage:
+        To access a keybind: KeyBinds.Category.ACTION_NAME
+
+    Naming Conventions:
+        - Numpad keys: use prefix 'numpad_' (e.g., 'numpad_1')
+        - Top row numbers: use prefix 'numrow_' (e.g., 'numrow_1')
+
+    Example:
+        up = KeyBinds.Gameplay.up
+    """
+    class Gameplay:
+        "Gameplay Category for Keybinds"
+        up: KeyLike = pygame.K_w
+        left: KeyLike = pygame.K_a
+        down: KeyLike = pygame.K_s
+        right: KeyLike = pygame.K_d
+        shoot: KeyLike = (pygame.K_SPACE, pygame.K_z)
+    class Debug:
+        "Debug Category for Keybinds"
+        numpad_plus: KeyLike = pygame.K_KP_PLUS
+        numrow_1: KeyLike = pygame.K_1
 
 WIN_PATH = pathlib.Path(__file__).resolve().parent
 SPRITE_SCALING = 6
-
-error = 0000
-error_text = ""
-error_origin = pathlib.Path()
 
 delay = 60
 
@@ -52,10 +77,6 @@ health_blink_timer = 60
 game_over = False
 game_over_ui_shown = False
 
-class Keybinds:
-    restart_key = pygame.K_r
-    quit_key = pygame.K_ESCAPE
-
 class Screen:
     "Base Class for Screen"
     class Size:
@@ -68,17 +89,6 @@ class Screen:
 class Game:
     title = "Galactic Space Reborn"
     running = True
-
-module_paths = [
-    "main",
-    "config",
-    "src.animation",
-    "src.assets",
-    "src.bullet",
-    "src.entity_management",
-    "src.entity",
-    "src.powerup"
-]
 
 if __name__ == "__main__":
     print("Execution of module detected! Please run main.py for the game to work properly.")

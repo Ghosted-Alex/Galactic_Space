@@ -6,41 +6,41 @@ import pygame
 
 def update_entities(enemies, bullets, powerups, player, screen):
     for e in enemies[:]:
-                e.move()    
-                e.update()
-    
-                if e.y > config.Screen.Size.h:
-                    enemies.remove(e)
-                    continue
-                
-                # Check Bullet Collision
-                for b in bullets[:]:
-                    if e.rect.colliderect(b.rect):
-                        assets.Sounds.entity_damage.play()
-                        if e in enemies: enemies.remove(e)
-                        if b in bullets: bullets.remove(b)
-                        config.score += 1
-                        break # Enemy is dead, stop checking bullets for it
-                    
-                # Check Player Collision
-                if e.rect.colliderect(player.rect):
-                    config.health_blink_timer = 0
-    
-                    assets.Sounds.entity_damage.play()
-    
-                    if player.invincible == False:
-                        if config.difficulty == 0:
-                            player.health -= 10
-                        else:
-                            player.health -= 15
-    
-                    if e in enemies: enemies.remove(e)
-    
-                    if player.invincible == True:
-                        config.score += 1
-    
-                e.draw(screen) # Draw it here
+        e.move()    
+        e.update()
+
+        if e.y > config.Screen.Size.h:
+            enemies.remove(e)
+            continue
+
+        # Check Bullet Collision
+        for b in bullets[:]:
+            if e.rect.colliderect(b.rect):
+                assets.Sounds.entity_damage.play()
+                if e in enemies: enemies.remove(e)
+                if b in bullets: bullets.remove(b)
+                config.score += 1
+                break # Enemy is dead, stop checking bullets for it
             
+        # Check Player Collision
+        if e.rect.colliderect(player.rect):
+            config.health_blink_timer = 0
+
+            assets.Sounds.entity_damage.play()
+
+            if player.invincible == False:
+                if config.difficulty == 0:
+                    player.health -= 10
+                else:
+                    player.health -= 15
+
+            if e in enemies: enemies.remove(e)
+
+            if player.invincible == True:
+                config.score += 1
+    
+        e.draw(screen)
+
     for b in bullets[:]: # [:] creates a copy so we can safely remove items
         b.update()
         b.draw(screen)
@@ -48,6 +48,7 @@ def update_entities(enemies, bullets, powerups, player, screen):
         # Optimization: Delete bullet if it leaves the Screen
         if b.rect.bottom < 0:
             bullets.remove(b)
+
     for p in powerups[:]:
         p.move()    
         p.update()
@@ -84,5 +85,5 @@ def update_entities(enemies, bullets, powerups, player, screen):
                 
     
             if p in powerups: powerups.remove(p)
-    
-        p.draw(screen) # Draw it here
+
+        p.draw(screen)

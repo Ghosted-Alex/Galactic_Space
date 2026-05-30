@@ -4,7 +4,48 @@ from . import assets
 import config
 import pygame
 
-def show_panel_ui(screen, player):
+def draw_game_over_ui(screen):
+    config.game_over_ui_shown = True
+
+    # 1. Create a temporary screen with the same size as the screen
+    # pygame.SRCALPHA makes it capable of transparency
+    overlay = pygame.Surface((config.Screen.Size.w, config.Screen.Size.h), pygame.SRCALPHA)
+    
+    # 2. Fill it with a semi-transparent color (R, G, B, Alpha)
+    # Alpha 128 is 50% transparent (0 is invisible, 255 is solid)
+    overlay.fill((0, 0, 0, 150)) 
+    
+    # 3. Blit the overlay onto the main screen
+    screen.blit(overlay, (0, 0))
+
+    # 4. Let the game know that the game over UI was shown
+    config.game_over_ui_shown = True
+
+    if config.score > config.high_score:
+        config.high_score = config.score
+    else:
+        with open(config.HIGH_SCORE_FILE, "r") as file:
+            config.high_score = int(file.read().strip())
+
+    # 5. Create text lines
+    if config.score < config.high_score:
+        score_go_str = assets.monocraft.render(f"Score: {config.score}", True, (255, 255, 255))
+        print("Regular Score")
+    else:
+        score_go_str = assets.monocraft.render(f"New High Score!", True, (255, 180, 0))
+        print("High Score")
+    hi_score_go_str = assets.monocraft.render(f"High Score: {config.high_score}", True, (255, 255, 255))
+
+    ins_restart = assets.monocraft.render(f"Press \"{pygame.key.name(config.Keybinds.restart_key, False)}\" to Restart Game", True, (255, 255, 255))
+
+    # 6. Draw the UI on top
+    screen.blit(assets.Textures.UI.game_over, (318, 225))
+    screen.blit(score_go_str, (318, 275))
+    screen.blit(hi_score_go_str, (318, 315))
+
+    screen.blit(ins_restart, (215, 500))
+
+def draw_panel_ui(screen, player):
 
     # Replace that whole 'for i in range(2)' block with this:
     if config.blink_timer < 60:
@@ -62,7 +103,7 @@ def show_panel_ui(screen, player):
     screen.blit(score_str, (score_x_pos, 20+config.Screen.Size.h-187))
     screen.blit(high_score_str, (hi_x_pos, 87+config.Screen.Size.h-187))
 
-    # pygame.draw.rect(surface, (51, 255, 51), self.rect, 1)
+    # pygame.draw.rect(screen, (51, 255, 51), self.rect, 1)
     pygame.draw.rect(screen, config.BACKGROUND_HEALTH_COLOR, (15, 656, 400, 25))
 
     pygame.draw.rect(screen, config.HEALTH_COLOR_DRAIN, (15, 656, player.health_drain*4, 25))
