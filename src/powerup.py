@@ -10,11 +10,11 @@ class Spawn:
         self.type = powerUpType
 
         if self.type == 0:
-            self.image = assets.Textures.PowerUp.wrench
+            self.image = assets.Textures.wrench
         elif self.type == 1:
-            self.image = assets.Textures.PowerUp.power_wrench
+            self.image = assets.Textures.power_wrench
         elif self.type == 2:
-            self.image = assets.Textures.PowerUp.ammo
+            self.image = assets.Textures.energy
 
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
         self.speed = 3
@@ -22,11 +22,11 @@ class Spawn:
     def move(self):
         """Updates position based on type"""
         if self.type == 0: # Standard Wrench
-            self.y += self.speed
-        if self.type == 1:
-            self.y += self.speed+1
-        if self.type == 2:
-            self.y += self.speed-1
+            self.x -= self.speed
+        elif self.type == 1: # Power Wrench
+            self.x -= (self.speed + 1)
+        elif self.type == 2: # Energy Cell
+            self.x -= (self.speed - 1)
 
     def update(self):
         # Call move and then update the rect

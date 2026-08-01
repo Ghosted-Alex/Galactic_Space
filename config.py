@@ -1,95 +1,97 @@
-"Config Module"
+"""Config Module"""
 
 import pygame
+import os
 import pathlib
-from typing import TypeAlias, Union, Tuple
-
-KeyLike: TypeAlias = Union[int, Tuple[int, ...]]
+import math
 
 class KeyBinds:
-    """
-    Configuration class for mapping input keys to actions.
-
-    Usage:
-        To access a keybind: KeyBinds.Category.ACTION_NAME
-
-    Naming Conventions:
-        - Numpad keys: use prefix 'numpad_' (e.g., 'numpad_1')
-        - Top row numbers: use prefix 'numrow_' (e.g., 'numrow_1')
-
-    Example:
-        up = KeyBinds.Gameplay.up
-    """
+    """Organizes control inputs into categories for easy access."""
     class Gameplay:
-        "Gameplay Category for Keybinds"
-        up: KeyLike = pygame.K_w
-        left: KeyLike = pygame.K_a
-        down: KeyLike = pygame.K_s
-        right: KeyLike = pygame.K_d
-        shoot: KeyLike = (pygame.K_SPACE, pygame.K_z)
+        """Controls for player movement and actions."""
+        up = pygame.K_w
+        left = pygame.K_a
+        down = pygame.K_s
+        right = pygame.K_d
+        shoot = (pygame.K_SPACE, pygame.K_z)
     class Debug:
-        "Debug Category for Keybinds"
-        numpad_plus: KeyLike = pygame.K_KP_PLUS
-        numrow_1: KeyLike = pygame.K_1
+        """Keys reserved for development and troubleshooting."""
+        numpad_plus = pygame.K_KP_PLUS
+        numrow_1 = pygame.K_1
+        debug_key = pygame.K_F12
+    class General:
+        """Miscellaneous game controls."""
+        reset = pygame.K_r
 
+# Project paths and environment
 WIN_PATH = pathlib.Path(__file__).resolve().parent
-SPRITE_SCALING = 6
+"""Absolute path to the game directory."""
 
-delay = 60
+# --- This part is for modding, only modify this if you know what you are doing ----
+if os.environ.get("GSR_USE_MODS") == "True" and os.environ.get("GSR_ACTIVE_MOD"):
+    _mod_name = os.environ.get("GSR_ACTIVE_MOD")
+    
+    # Divert manifest paths straight into the active workspace folder
+    MANIFEST_FILE = WIN_PATH / "mods" / _mod_name / "manifest.json"
+    MODS_ACTIVE = True
+    print(f"[Engine Config] Mod Active: Layering paths to '/mods/{_mod_name}/'")
+else:
+    # Vanilla fallback path configuration
+    MANIFEST_FILE = WIN_PATH / "manifest.json"
+    MODS_ACTIVE = False
+    print("[Engine Config] Run profile: Vanilla. Native pipeline active.")
+# -----------------------------------------------------------------------------------
 
-game_over_delay = 180
+SPRITE_SCALING = 3
+"""Multiplier for sprite asset scaling."""
 
-difficulty = 0
+difficulty = 1
+"""Current game difficulty multiplier (default: 1)."""
 
 debug = False
-
-score = 0
-
-high_score = 0
+"""Boolean flag to enable/disable debug mode."""
 
 HIGH_SCORE_FILE = pathlib.Path(f"{WIN_PATH}/high_score.txt")
-
+"""Path object for the high score storage file."""
 HIGH_SCORE_FILE_EXISTS = pathlib.Path.exists(HIGH_SCORE_FILE)
+"""Boolean check: True if high_score.txt exists on disk."""
 
-powerup_timer = 0
+# Color constants (RGB)
+background_health_color = (15, 15, 15)
+background_energy_color  = (15, 15, 15)
 
-powerup_active = False
+health_color_high = (50, 168, 82)   # Green
+health_color_med = (166, 164, 51)   # Yellow
+health_color_low = (166, 51, 51)    # Red
+health_color_drain = (135, 242, 255) # Cyan
 
-powerup_type = 0
+energy_color = (219, 212, 53)
 
-powerup_type_text = "powerup_display.identifier.txt"
-
-frame = 0
-
-BACKGROUND_HEALTH_COLOR = (15, 15, 15)
-BACKGROUND_AMMO_COLOR = (15, 15, 15)
-
-HEALTH_COLOR_HIGH = (50, 168, 82) # High Health Color (Green)
-HEALTH_COLOR_MED = (166, 164, 51) # Medium Health Color (Yellow)
-HEALTH_COLOR_LOW = (166, 51, 51) # Low Health Color (Red)
-HEALTH_COLOR_DRAIN = (135, 242, 255) # Drain Color (Cyan)
-
-AMMO_COLOR = (219, 212, 53)
-
-blink_timer = 60
-health_blink_timer = 60
-
-game_over = False
-game_over_ui_shown = False
+blink_timer_max = 60
+"""Max frames for UI blink animations."""
 
 class Screen:
-    "Base Class for Screen"
+    """Screen settings."""
     class Size:
-        "Size of Screen"
-        w = 922
-        "width: 922"
-        h = 691
-        "height: 691"
+        """Resolution dimensions."""
+        w = 1072
+        """Window width."""
+        h = 861
+        """Window height."""
 
 class Game:
+    """Global game metadata."""
     title = "Galactic Space Reborn"
-    running = True
+
+format_ver = 1
+"""The format version for manifest.json
+
+Args:
+    Int: The version is supported in the game engine"""
+
+p02_pos = [Screen.Size.w-246, Screen.Size.h-195]
+"""Position anchor for the Panel 02 UI Element."""
 
 if __name__ == "__main__":
-    print("Execution of module detected! Please run main.py for the game to work properly.")
-    
+    print(ModuleNotFoundError("No module named config.__main__; 'config' is a dedicated module for Galactic Space Reborn and cannot be directly executed"))
+    print("(Run the game with main.py, not the config file)")

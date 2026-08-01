@@ -1,16 +1,26 @@
-"Module for Bullet"
+"""Module for Bullet"""
 
-import src.assets as assets
+from . import assets
 
 class Normal:
-    def __init__(self, x, y, image=None):
-        self.image = image if image else assets.Textures.Bullet.blank
+    def __init__(self, x, y, btype=0):
+        match btype:
+            case 0:
+                self.image = assets.Textures.bullet0
+            case 1:
+                self.image = assets.Textures.bullet0
+            case 2:
+                self.image = assets.Textures.bullet0
+            case 3:
+                self.image = assets.Textures.bullet0
+            case _:
+                self.image = assets.Textures.bullet_blank
         self.speed = 25
-        self.rect = self.image.get_rect(topleft=(x, y))
+        self.rect = self.image.get_rect(midtop=(x, y))
 
     def update(self):
         # Move the rect, which is the "source of truth" for position
-        self.rect.y -= self.speed
+        self.rect.x += self.speed
 
     def draw(self, surface):
         # Draw the actual image at the rect's current position

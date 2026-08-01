@@ -1,4 +1,4 @@
-"Module for Entities"
+"""Module for Entities"""
 
 import pygame
 
@@ -7,7 +7,7 @@ import config
 
 class Player:
     """Instance Class for player"""
-    def __init__(self, x: int, y: int, c: int = 0):
+    def __init__(self, x: int, y: int, color: int = 0):
         self.x = x
         self.y = y
         self.speed = 8
@@ -17,15 +17,19 @@ class Player:
         self.texture = None
         self.invincible = False
 
-        # Logic to pick texture based on the 'c' (color/type) argument
-        if c == 0:
-            self.texture = assets.Textures.Player.player0
+        # Logic to pick texture based on the 'color' (color/type) argument
+        if color == 0:
+            self.texture = assets.Textures.player0
+            print("Texture Set Blue")
         else:
-            self.texture = assets.Textures.Player.player_blank
+            self.texture = assets.Textures.player_blank
+            print("Texture Set None")
+
+        print(self.texture)
 
         # This creates a Rect exactly the size of your image
-        self.rect = self.texture.get_rect(topleft=(self.x, self.y))
-
+        self.rect = self.texture.get_rect(center=(self.x, self.y))
+        
     def draw(self, surface):
         """Blits the player texture\n
         Draws a white hitbox rectangle (if debug mode is on)"""
@@ -69,14 +73,27 @@ class Player:
             self.rect.bottom = config.Screen.Size.h-45
 
 class Enemy:
-    def __init__(self, x: int, y: int, image: pygame.surface.Surface, enemy_type: int):
+    def __init__(self, x: int, y: int, enemy_type: int, shield: bool = False):
         self.x = x
         self.y = y
-        self.start_x = x # Store the initial X for wave patterns
-        self.image = image
+        self.start_y = y # Store the initial Y for wave patterns
         self.enemy_type = enemy_type
         self.isAlive = True
+        self.shield = shield
+        
+        if self.enemy_type == 0:
+            self.image = assets.Textures.enemy0
+            self.health = 1
+        elif self.enemy_type == 1:
+            self.image = assets.Textures.enemy1
+            self.health = 1
+        elif self.enemy_type == 2:
+            self.image = assets.Textures.enemy0
+            self.health = 3
+        
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
+        
+        self.max_health = self.health
         
         # Unique attributes based on type
         self.speed = 3 if enemy_type == 0 else 5
@@ -85,29 +102,57 @@ class Enemy:
     def move(self):
         """Updates position based on enemy_type"""
         if self.enemy_type == 0: # Standard Grunt
-            self.y += self.speed
+            self.x -= self.speed
 
-        elif self.enemy_type == 1: # The "Waver" (Sine Wave)
-            self.y += self.speed - 1
+        elif self.enemy_type == 1: # The "Fast Diver"
+            self.x -= self.speed + 4
+            # Slight drift towards center
+            if self.y < 400: self.y += 1
+            else: self.y -= 1
+
+        elif self.enemy_type == 2: # The "Waver" (Sine Wave) - Also includes Health so it takes more than 1 shot to kill
+            self.x -= self.speed - 1
             self.angle += 0.1
             # Move side-to-side using a sine wave
-            self.x = self.start_x + config.math.sin(self.angle) * 50
-
-        elif self.enemy_type == 2: # The "Fast Diver"
-            self.y += self.speed + 4
-            # Slight drift towards center
-            if self.x < 400: self.x += 1
-            else: self.x -= 1
+            self.y = self.start_y + config.math.sin(self.angle) * 50
 
     def update(self):
         # Call move and then update the rect
         self.rect.topleft = (self.x, self.y)
 
     def draw(self, surface):
-    # Flip the sprite for enemies (facing down)
-        img = pygame.transform.flip(self.image, False, True)
-        # Use self.rect instead of (self.x, self.y)
+        if self.enemy_type == 0:
+            img = pygame.transform.flip(self.image, True, False)
+        elif self.enemy_type == 2:
+            img = pygame.transform.flip(self.image, True, False)
+        else:
+            img = self.image
+        
+        self.shield_image = assets.Textures.shield
+        
+        if self.shield:
+            shield_rect = assets.Textures.shield.get_rect(
+                right=self.rect.left + 5, # Slightly overlapping the left side
+                centery=self.rect.centery
+            )
+            surface.blit(assets.Textures.shield, shield_rect)
+
         surface.blit(img, self.rect) 
+        
+        bar_width = 30
+        bar_height = 4
+        # Calculate health percentage
+        health_pct = self.health / self.max_health
+        
+        # Position: Center it under the enemy, 2 pixels below the sprite
+        bar_x = self.rect.centerx - (bar_width // 2)
+        bar_y = self.rect.bottom + 2
+        
+        # Draw background (Red)
+        pygame.draw.rect(surface, (200, 0, 0), (bar_x, bar_y, bar_width, bar_height))
+        # Draw current health (Green)
+        pygame.draw.rect(surface, (0, 255, 0), (bar_x, bar_y, bar_width * health_pct, bar_height))
+        # ---------------------------------
         
         if config.debug:
             pygame.draw.rect(surface, (255, 51, 51), self.rect, 1)

@@ -36,4 +36,9 @@ build/
 
 # Misc Files
 *.txt
-*.json
+
+# Exceptions
+!requirements.txt
+
+# Exlude
+excluded/

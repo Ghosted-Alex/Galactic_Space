@@ -1,6 +1,11 @@
 """Extends from main.py"""
 
-from . import animation, assets, bullet, controls, entity, powerup, ui, update
+from . import animation, assets, bullet, controls, entity, events, powerup, ui, update, starfield, stats, clock, states
+
+try:
+    from . import mod
+except ImportError:
+    mod = None
 
 __all__ = [
     animation,
@@ -8,7 +13,15 @@ __all__ = [
     bullet,
     controls,
     entity,
+    events,
     powerup,
     ui,
-    update
+    update,
+    starfield,
+    stats,
+    clock,
+    states
 ]
+
+if mod is not None:
+    __all__.append(mod)

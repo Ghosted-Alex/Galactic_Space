@@ -1,15 +1,20 @@
+#!/usr/bin/env python3
+
 # Galactic Space Reborn
 # Copyright (c) Ghosted Alex 2026
-# Made under the MIT license: https://opensource.org/license/mit
+# Code Made under the MIT license:
+# Github: https://github.com/Ghosted-Alex/Galactic_Space_Reborn?tab=MIT-2-ov-file
+# GitLab: https://gitlab.com/ghostedalex/Galactic_Space_Reborn/-/blob/main/LICENSE_MIT?ref_type=heads
 
 # General Imports
 import os
 import pathlib
 import random
-import subprocess
-import pygame
-import configparser
+import sys
 
+import pygame
+
+# Quick Initialization
 pygame.init()
 
 # Source Imports
@@ -17,233 +22,148 @@ import config
 
 from src import assets
 from src import entity
-from src import powerup
-from src import bullet
 from src import update
 from src import ui
 from src import controls
+from src import starfield
+from src import stats
+from src import clock
+from src import states
+from src import events
+from src.scenes import SceneManager, TitleScene, fade_screen
 
-def load_settings(settings_path=pathlib.Path(f"{config.WIN_PATH}/settings.ini")):
-    parser = configparser.ConfigParser()
-    parser.read(settings_path)
+try:
+    from src.mod import load_behavioral_mixins, verify_manifest
+    MODDING_AVAILABLE = True
+except ImportError:
+    MODDING_AVAILABLE = False
+    def load_behavioral_mixins():
+        """Fallback when src/mod.py is not present."""
+        pass
+
+    def verify_manifest() -> bool:
+        """Fallback when src/mod.py is not present."""
+        return True
+
+
+def show_loading_screen():
+    """Load all assets with a visual loading screen, displaying the splash screen when progress reaches halfway."""
     
-    # Pre-computed map for speed
-    key_map = {attr[2:].lower(): getattr(pygame, attr) for attr in dir(pygame) if attr.startswith("K_")}
+    if not verify_manifest():
+        print("[Engine Core] Aborting asset streaming sequence due to manifest file verification errors.")
+        pygame.quit()
+        sys.exit(1)
+
+    # Pre-resolve pre-roll splash texture configuration
+    manifest = assets.get_merged_manifest()
+    pre_roll_cfg = manifest.get("textures", {}).get("pre_roll", "textures/ui/preRoll.png")
+    if isinstance(pre_roll_cfg, dict):
+        rel_path = pre_roll_cfg.get("file", "textures/ui/preRoll.png")
+        scale = pre_roll_cfg.get("scale", config.SPRITE_SCALING)
+    else:
+        rel_path = pre_roll_cfg
+        scale = config.SPRITE_SCALING
+
+    pre_roll_path = assets.resolve_asset_path(rel_path)
+    pre_roll_img = None
+    if pre_roll_path.is_file():
+        try:
+            raw_pre_roll = pygame.image.load(str(pre_roll_path)).convert_alpha()
+            pre_roll_img = pygame.transform.scale_by(raw_pre_roll, scale)
+        except Exception as err:
+            print(f"[Engine Core] Error loading pre-roll graphic: {err}")
     
-    for section in parser.sections():
-        if hasattr(config.KeyBinds, section):
-            category = getattr(config.KeyBinds, section)
-            for key, value in parser.items(section):
-                # Look up the key constant
-                # (You might need a small mapping function here to handle 'kp_plus' vs 'plus')
-                key_const = key_map.get(value.lower())
-                if key_const:
-                    setattr(category, key, key_const)
+    # 1. Start asset loading generator
+    loader = assets.load_assets_generator()
+    screen_rect = SCR.get_rect()
+    
+    # 2. Progress loop
+    for progress in loader:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit(0)
+
+        SCR.fill((0, 0, 0))
+        
+        # Calculate loading bar dimensions
+        bar_width = 400
+        bar_height = 20
+        bar_x = screen_rect.centerx - (bar_width // 2)
+        bar_y = screen_rect.centery + 100  # Shift bar lower to provide space for splash above
+        progress_bar_width = (progress / 100) * bar_width
+
+        # Display splash screen graphic ABOVE the loading bar when progress reaches >= 50%
+        if progress >= 50 and pre_roll_img is not None:
+            pre_roll_rect = pre_roll_img.get_rect(center=(screen_rect.centerx, bar_y - 150))
+            SCR.blit(pre_roll_img, pre_roll_rect)
+        
+        # Draw progress bar outlines and fill
+        pygame.draw.rect(SCR, (255, 255, 255), (bar_x, bar_y, progress_bar_width, bar_height))
+        pygame.draw.rect(SCR, (255, 255, 255), (bar_x - 4, bar_y - 4, bar_width + 8, bar_height + 8), 1)
+
+        # Draw progress & loading title text
+        if hasattr(assets, 'pressStart2P') and assets.pressStart2P is not None:
+            status = assets.pressStart2P.render(f"({progress}%)", True, (255, 255, 255))
+            title = assets.pressStart2P.render("Loading Game...", True, (255, 255, 255))
+            
+            title_rect = title.get_rect(center=(screen_rect.centerx, bar_y - 30))
+            status_rect = status.get_rect(center=(screen_rect.centerx, bar_y + 45))
+            
+            SCR.blit(title, title_rect)
+            SCR.blit(status, status_rect)
+        
+        pygame.display.flip()
+
+    # Fade out loading screen to black before entering title screen
+    fade_screen(SCR, mode="out", speed=15)
+
 
 def initialize():
+    """Initialize Game State and Engine Window."""
     global FPS, SCR
     
     FPS = pygame.time.Clock()
-
-    SCR = pygame.display.set_mode((config.Screen.Size.w, config.Screen.Size.h))
-
+    SCR = pygame.display.set_mode((config.Screen.Size.w, config.Screen.Size.h))    
+    
     pygame.display.set_caption(config.Game.title)
-
+    
+    # Load and execute mod mixins before loading assets
+    load_behavioral_mixins()
+    
+    # Run asset loader with pre-roll splash halfway through
+    show_loading_screen()
+    
+    if assets.Textures.icon is not None:
+        pygame.display.set_icon(assets.Textures.icon)
+    else:
+        vanilla_icon_path = pathlib.Path(config.WIN_PATH) / "assets" / "textures" / "ui" / "icon.png"
+        if vanilla_icon_path.is_file():
+            fallback_surface = pygame.image.load(str(vanilla_icon_path)).convert_alpha()
+            pygame.display.set_icon(fallback_surface)
+            print("[Engine Core] Mod icon undefined. Safely loaded vanilla fallback display icon.")
+    
     return FPS, SCR
 
-player = entity.Player(config.Screen.Size.w / 2 - 20, config.Screen.Size.h / 2 - 20)# Instead of manual math:
-player_rect = player.texture.get_rect(center=(config.Screen.Size.w / 2, config.Screen.Size.h / 2))
-player.x, player.y = player_rect.topleft
-
-bullet_normal = bullet.Normal(player.x+28, player.y)
-
-a1 = entity.Enemy(random.randint(16, 906), -5, assets.Textures.Enemy.enemy0, 0)
-
-enemies = []
-bullets = []
-powerups = []
-
-def game_over():
-    print("Game Over!")
-    assets.Sounds.player_death.play()
-    config.game_over = True
-    if config.score == config.high_score:
-        config.high_score = config.score
-        with open(config.HIGH_SCORE_FILE, "w") as file:
-            file.write(str(config.high_score))
-        print("High Score Saved!")
-
-if not config.HIGH_SCORE_FILE_EXISTS:
-    with open(config.HIGH_SCORE_FILE, "w") as file:
-        file.write(str(config.high_score))
-else:
-    with open(config.HIGH_SCORE_FILE, "r") as file:
-        config.high_score = int(file.read().strip())
 
 FPS, SCR = initialize()
 
-while config.Game.running:
-    FPS.tick(60)
+# Initialize Scene Manager & set initial Title Scene (with smooth fade-in)
+scene_manager = SceneManager(SCR)
+scene_manager.set_scene(TitleScene(), fade=True, fade_speed=12)
 
-    config.frame += 1
+running = True
 
-    if config.game_over == False:
-        if config.blink_timer < 60:
-            config.blink_timer += 1
-        
-        if config.health_blink_timer < 60:
-            config.health_blink_timer += 1
+while running:
+    dt = FPS.tick(60) / 1000.0  # Framerate clock tick
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                config.Game.running = False
-            
-            # Check for the initial key press here
-            if event.type == pygame.KEYDOWN:
-                if config.debug:
-                    if controls.single_press(event, config.KeyBinds.Debug.numpad_plus):
-                        if config.score < 10:
-                            config.score += 10
-                        else:
-                            config.score += config.score * 10
-                    if controls.single_press(event, config.KeyBinds.Debug.numrow_1):
-                        game_over()
-                if controls.single_press(event, config.KeyBinds.Gameplay.shoot):
-                    if config.game_over == False:
-                        # Create the bullet at the player's current position
-                        if player.energy > 0:
-                            new_bullet = bullet.Normal(player.rect.centerx, player.rect.top)
-                            bullets.append(new_bullet)
-                            assets.Sounds.player_shoot.play()
-                            player.energy -= 5
-                        else:
-                            config.blink_timer = 0
-                            
-                if event.key == pygame.K_F12:
-                    config.debug = not config.debug
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        scene_manager.handle_event(event)
 
-        if not config.Game.running:
-            break
-
-        keys = pygame.key.get_pressed()
-
-        # RENDERING
-        # Inside your "RENDERING" section in main.py
-        # For Rendering stuff ALWAYS put rendering functionality between SCR.fill() and pygame.display.flip()
-        SCR.fill((0, 0, 0))
-
-        # Updates
-        update.update_entities(enemies=enemies, bullets=bullets, powerups=powerups, player=player, screen=SCR)
-
-        player.handle_input(keys)
-        player.draw(SCR)
-
-        config.delay -= 1
-        if config.delay < 0:
-            config.delay = 60
-        
-        if config.delay == 0:
-            # Create a new enemy and ADD it to the list instead of overwriting
-            new_enemy = entity.Enemy(random.randint(48, 874), -75, assets.Textures.Enemy.enemy0, 0)
-            enemies.append(new_enemy)
-        
-        if config.delay == random.randint(1, 60): # Trigger randomly within the 60 frames per second
-            chance = random.randint(0, 99)
-            print(f"Roll (%): {chance}")
-
-            # Check for Health
-            if player.health <= 95 and 0 <= chance <= 15:
-                print("Wrench Powerup Summoned!")
-                new_powerup = powerup.Spawn(random.randint(48, 874), -75, 0)
-                powerups.append(new_powerup)
-                
-            # Check for Ammunition
-            elif player.energy <= 95 and 16 <= chance <= 50:
-                print("Ammo Powerup Summoned!")
-                new_powerup = powerup.Spawn(random.randint(48, 874), -75, 2)
-                powerups.append(new_powerup)
-            
-            # Check for Active Powerup
-            elif config.powerup_active == False:
-                # Check for 5% Chance, regardless of health and ammo
-                if 50 <= chance <= 55:
-                    print("Power Wrench Powerup Summoned!")
-                    new_powerup = powerup.Spawn(random.randint(48, 874), -75, 1)
-                    powerups.append(new_powerup)
-                    
-        if config.delay == 0:
-            if config.powerup_timer > 0:
-                config.powerup_timer -= 1
-        
-        if config.powerup_timer <= 0 and config.powerup_active == True:
-            if config.powerup_type == 0:
-                config.health_blink_timer = 0
-                config.powerup_active = False
-                player.invincible = False
-
-        if player.health <= 0:
-            game_over()
-
-        # This ensures the score never exceeds 999,999
-        config.score = min(config.score, 999999)
-        config.high_score = min(config.high_score, 999999)
-
-        ui.draw_panel_ui(SCR, player=player)
-
-    else:
-        # This runs when the game is over
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                config.Game.running = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r: # Example: Restart game
-                    # Reset your variables here
-                    config.game_over = False
-                    config.game_over_ui_shown = False
-                    player.health = 100
-                    enemies.clear()
-
-        if config.game_over_ui_shown == False:
-            SCR.blit(assets.Textures.UI.panel_01, (0, config.Screen.Size.h-45))
-
-            # pygame.draw.rect(surface, (51, 255, 51), self.rect, 1)
-            pygame.draw.rect(SCR, config.BACKGROUND_HEALTH_COLOR, (15, 656, 400, 25))
-
-            pygame.draw.rect(SCR, config.HEALTH_COLOR_DRAIN, (15, 656, player.health_drain*4, 25))
-
-            if player.health > 50:
-                pygame.draw.rect(SCR, config.HEALTH_COLOR_HIGH, (15, 656, player.health*4, 25))
-            if 50 >= player.health > 25:
-                pygame.draw.rect(SCR, config.HEALTH_COLOR_MED, (15, 656, player.health*4, 25))
-            if player.health <= 25:
-                pygame.draw.rect(SCR, config.HEALTH_COLOR_LOW, (15, 656, player.health*4, 25))
-            if player.health <= 0:
-                game_over()
-
-            if player.health_drain > player.health:
-                player.health_drain -= .1
-            elif player.health_drain < player.health:
-                player.health_drain = player.health
-
-            # 1. Background Bar (The gray slot)
-            # Starts at 507, width 400 (507 + 400 = 907)
-            pygame.draw.rect(SCR, config.BACKGROUND_AMMO_COLOR, (507, 656, 400, 25))
-
-            # 2. The Draining Logic
-            # We calculate the width first
-            energy_width = player.energy * 4
-
-            # To make it "reverse," we push the X-coordinate forward by the missing amount
-            # 507 + (400 - energy_width)
-            reverse_x = 507 + (400 - energy_width)
-
-            # 3. Draw the Energy Bar (Yellow)
-            if player.energy > 0:
-                pygame.draw.rect(SCR, config.AMMO_COLOR, (reverse_x, 656, energy_width, 25))
-
-            # Draw the transparent GUI
-            ui.draw_game_over_ui(screen=SCR)
-
+    scene_manager.update(dt)
+    scene_manager.draw(SCR)
     pygame.display.flip()
 
 pygame.quit()
