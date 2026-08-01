@@ -1,0 +1,44 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+# Covers common names like .venv, venv, and env
+.venv/
+venv/
+env/
+ENV/
+
+# Environment variables / Secrets
+# Never commit your API keys or passwords
+.env
+.env.*
+
+# Distribution / Build / Packaging
+# These are generated when you build or package your project
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# IDE-specific files
+# Your original editor settings
+.vscode/
+.idea/
+
+# Unit test / Coverage reports
+.tox/
+.nox/
+.coverage
+.cache
+.pytest_cache/
+
+# Misc Files
+*.txt
+
+# Exceptions
+!requirements.txt
+
+# Exlude
+excluded/

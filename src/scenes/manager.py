@@ -1,0 +1,109 @@
+"""Scene Manager module supporting smooth screen fade transitions and dedicated scene lifecycle management."""
+
+import pygame
+
+
+class SceneManager:
+    """Manages active scene, screen switching, and smooth fade transitions."""
+
+    def __init__(self, screen: pygame.Surface):
+        self.screen = screen
+        self.current_scene = None
+        self.next_scene = None
+        self.next_scene_args = ()
+        self.next_scene_kwargs = {}
+        
+        # Fade transition state
+        self.fading = False
+        self.fade_alpha = 0
+        self.fade_mode = None  # 'out' (fading to black) or 'in' (fading from black)
+        self.fade_speed = 12
+        self.fade_surface = pygame.Surface(screen.get_size()).convert()
+        self.fade_surface.fill((0, 0, 0))
+
+    def set_scene(self, scene, fade: bool = True, fade_speed: int = 12, *args, **kwargs):
+        """Switches to a new scene, optionally with a smooth fade transition."""
+        if not fade or self.current_scene is None:
+            # Immediate scene switch without fade
+            if self.current_scene:
+                self.current_scene.unload()
+            self.current_scene = scene
+            self.current_scene.manager = self
+            self.current_scene.load(*args, **kwargs)
+        else:
+            # Initiate fade transition
+            self.next_scene = scene
+            self.next_scene_args = args
+            self.next_scene_kwargs = kwargs
+            self.fade_speed = fade_speed
+            self.fade_mode = 'out'
+            self.fading = True
+            self.fade_alpha = 0
+
+    def handle_event(self, event: pygame.event.Event):
+        """Pass events to the current scene (unless fading out)."""
+        if self.fading and self.fade_mode == 'out':
+            return  # Block input during fade out transition
+        if self.current_scene:
+            self.current_scene.handle_event(event)
+
+    def update(self, dt: float = 1.0):
+        """Update active scene and fade animation state."""
+        if self.fading:
+            if self.fade_mode == 'out':
+                self.fade_alpha += self.fade_speed
+                if self.fade_alpha >= 255:
+                    self.fade_alpha = 255
+                    # Unload current scene and load next scene at peak dark alpha
+                    if self.current_scene:
+                        self.current_scene.unload()
+                    self.current_scene = self.next_scene
+                    self.current_scene.manager = self
+                    self.current_scene.load(*self.next_scene_args, **self.next_scene_kwargs)
+                    self.next_scene = None
+                    self.fade_mode = 'in'
+            elif self.fade_mode == 'in':
+                self.fade_alpha -= self.fade_speed
+                if self.fade_alpha <= 0:
+                    self.fade_alpha = 0
+                    self.fading = False
+                    self.fade_mode = None
+
+        if self.current_scene:
+            self.current_scene.update(dt)
+
+    def draw(self, screen: pygame.Surface = None):
+        """Draw current scene and overlay fade effect if transitioning."""
+        target_screen = screen or self.screen
+        if self.current_scene:
+            self.current_scene.draw(target_screen)
+
+        if self.fading and self.fade_alpha > 0:
+            self.fade_surface.set_alpha(int(self.fade_alpha))
+            target_screen.blit(self.fade_surface, (0, 0))
+
+
+def fade_screen(screen: pygame.Surface, mode: str = "out", speed: int = 15, clock=None, draw_fn=None):
+    """Standalone helper function to fade screen in or out synchronously."""
+    fade_surface = pygame.Surface(screen.get_size()).convert()
+    fade_surface.fill((0, 0, 0))
+    clock = clock or pygame.time.Clock()
+
+    if mode == "out":
+        alpha_range = range(0, 256, speed)
+    else:
+        alpha_range = range(255, -1, -speed)
+
+    for alpha in alpha_range:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit(0)
+
+        if draw_fn:
+            draw_fn(screen)
+
+        fade_surface.set_alpha(alpha)
+        screen.blit(fade_surface, (0, 0))
+        pygame.display.flip()
+        clock.tick(60)
