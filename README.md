@@ -1,4 +1,8 @@
-# Galactic Space Reborn
+# Galactic Space Reborn [Beta]
+
+Be aware this is the beta branch, there will be bugs but this is the branch where I'll be testing out new features in the game, this is also the branch that should have bugs get reported in, that means if you see any bugs, you are encouraged to report them in this branch.
+
+At this point the game is close to release, just needs a few more features
 
 ![Status Badge](https://img.shields.io/badge/Status-In_Development-orange?style=flat-square)
 
