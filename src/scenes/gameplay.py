@@ -47,7 +47,7 @@ def load(*args, **kwargs):
     stats.score = 0
 
     # Load high score
-    if not config.HIGH_SCORE_FILE_EXISTS:
+    if not config.check_high_score_exists():
         events.save_high_score(stats.high_score, config.HIGH_SCORE_FILE)
     else:
         stats.high_score = events.load_high_score(config.HIGH_SCORE_FILE)
@@ -86,6 +86,10 @@ def handle_event(event: pygame.event.Event, manager=None):
 
     if not states.game_over:
         if event.type == pygame.KEYDOWN:
+            if event.key == config.KeyBinds.General.escape and manager:
+                from .pause_menu import PauseMenuScene
+                manager.show_overlay(PauseMenuScene())
+                return
             if config.debug:
                 if controls.single_press(event, config.KeyBinds.Debug.numpad_plus):
                     if stats.score < 10:
@@ -95,7 +99,7 @@ def handle_event(event: pygame.event.Event, manager=None):
                 if controls.single_press(event, config.KeyBinds.Debug.numrow_1):
                     keys_pressed = pygame.key.get_pressed()
                     if keys_pressed[config.KeyBinds.Debug.debug_key]:
-                        game_over()
+                        events.spawn_powerup(50, player, _state["powerups"])
 
             if controls.single_press(event=event, key=config.KeyBinds.Gameplay.shoot):
                 if player and not states.game_over:
@@ -153,7 +157,7 @@ def update(dt: float = 1.0):
         )
 
         for eff in _state["effects"][:]:
-            eff.update()
+            eff.update(dt)
             if hasattr(eff, 'is_expired') and eff.is_expired():
                 _state["effects"].remove(eff)
 
@@ -163,8 +167,8 @@ def update(dt: float = 1.0):
         if clock.delay < 0:
             clock.delay = 60
 
-        # Adjust enemy spawn frequency according to config.difficulty
-        diff_multiplier = getattr(config, "difficulty", 1.0)
+        # Adjust enemy spawn frequency according to states.difficulty
+        diff_multiplier = getattr(states, "difficulty", 1.0)
         
         if clock.delay == 0:
             events.spawn_enemy(_state["enemies"])

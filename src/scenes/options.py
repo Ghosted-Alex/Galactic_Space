@@ -1,190 +1,135 @@
-"""Options Screen / Scene for Galactic Space Reborn.
-
-Provides dedicated load(), unload(), handle_event(), update(), and draw() functions
-as well as an OptionsScene class wrapper.
-"""
+"""Top-level settings category menu."""
 
 import sys
+
 import pygame
+
 import config
-from src import assets
-from src import starfield
-from src import stats
+from src import assets, starfield
 from .base import BaseScene
 
 
 _state = {
     "loaded": False,
     "stars_bg": None,
-    "back_rect": None,
-    "debug_rect": None,
-    "hover_item": None,  # "debug" | "back" | None
+    "selected_index": 0,
+    "options": ("VIDEO", "MUSIC & SOUNDS", "BACK"),
+    "option_rects": [],
 }
 
 
 def load(*args, **kwargs):
-    """Dedicated scene load function. Initializes options screen state."""
+    """Prepare the category selection screen."""
     _state["loaded"] = True
+    _state["selected_index"] = 0
+    _state["option_rects"] = []
     _state["stars_bg"] = starfield.Generate(config.Screen.Size.w, config.Screen.Size.h)
 
 
 def unload():
-    """Dedicated scene unload function. Cleans up options screen state."""
     _state["loaded"] = False
     _state["stars_bg"] = None
+    _state["option_rects"] = []
 
 
-def handle_event(event: pygame.event.Event, manager=None):
-    """Dedicated event handler for options menu."""
+def _return_to_title(manager):
+    if manager:
+        if manager.has_previous_scene():
+            manager.pop_scene()
+        else:
+            from .title import TitleScene
+            manager.set_scene(TitleScene(), fade=True)
+
+
+def _activate_option(index, manager):
+    selected = _state["options"][index]
+    if selected == "VIDEO" and manager:
+        from .video_options import VideoOptionsScene
+        manager.set_scene(VideoOptionsScene(), fade=True)
+    elif selected == "MUSIC & SOUNDS" and manager:
+        from .audio_options import AudioOptionsScene
+        manager.set_scene(AudioOptionsScene(), fade=True)
+    elif selected == "BACK":
+        _return_to_title(manager)
+
+
+def handle_event(event, manager=None):
     if event.type == pygame.QUIT:
         pygame.quit()
         sys.exit(0)
-
     if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_ESCAPE:
             _return_to_title(manager)
+        elif event.key in (pygame.K_UP, pygame.K_w):
+            _state["selected_index"] = (_state["selected_index"] - 1) % len(_state["options"])
+        elif event.key in (pygame.K_DOWN, pygame.K_s):
+            _state["selected_index"] = (_state["selected_index"] + 1) % len(_state["options"])
         elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
-            # Only toggle debug when the debug row is hovered / focused
-            if _state["hover_item"] == "debug":
-                config.debug = not config.debug
-
+            _activate_option(_state["selected_index"], manager)
     elif event.type == pygame.MOUSEMOTION:
-        mouse_pos = event.pos
-        _state["hover_item"] = None
-        if _state["debug_rect"] and _state["debug_rect"].collidepoint(mouse_pos):
-            _state["hover_item"] = "debug"
-        elif _state["back_rect"] and _state["back_rect"].collidepoint(mouse_pos):
-            _state["hover_item"] = "back"
-
+        for index, option_rect in enumerate(_state["option_rects"]):
+            if option_rect.collidepoint(event.pos):
+                _state["selected_index"] = index
+                break
     elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-        mouse_pos = event.pos
-        if _state["debug_rect"] and _state["debug_rect"].collidepoint(mouse_pos):
-            config.debug = not config.debug
-        elif _state["back_rect"] and _state["back_rect"].collidepoint(mouse_pos):
-            _return_to_title(manager)
+        for index, option_rect in enumerate(_state["option_rects"]):
+            if option_rect.collidepoint(event.pos):
+                _state["selected_index"] = index
+                _activate_option(index, manager)
+                break
 
 
-def _return_to_title(manager=None):
-    """Transitions back to Title screen."""
-    if manager:
-        from .title import TitleScene
-        manager.set_scene(TitleScene(), fade=True)
-
-
-def update(dt: float = 1.0):
-    """Dedicated update function. Advances background starfield."""
+def update(dt=1.0):
     if _state["stars_bg"]:
         _state["stars_bg"].update()
 
 
-def draw(screen: pygame.Surface):
-    """Dedicated draw function. Renders options settings & controls guide."""
+def draw(screen):
     screen.fill((0, 0, 0))
-
     if _state["stars_bg"]:
         _state["stars_bg"].draw(screen)
 
     center_x = config.Screen.Size.w // 2
-    font = getattr(assets, 'pressStart2P', None)
+    title_font = getattr(assets, "pressStart2P", None)
+    body_font = getattr(assets, "monocraft", title_font)
+    if title_font:
+        title = title_font.render("OPTIONS", True, (255, 255, 255))
+        subtitle = title_font.render("GAME SETTINGS", True, (135, 242, 255))
+        screen.blit(title, title.get_rect(center=(center_x, 110)))
+        screen.blit(subtitle, subtitle.get_rect(center=(center_x, 155)))
 
-    # 1. Header Title
-    if font:
-        title_surf = font.render("GAME OPTIONS", True, (255, 255, 255))
-        title_rect = title_surf.get_rect(center=(center_x, 90))
-        screen.blit(title_surf, title_rect)
+    panel = pygame.Rect(center_x - 360, 205, 720, 410)
+    pygame.draw.rect(screen, (18, 24, 36), panel, border_radius=10)
+    pygame.draw.rect(screen, (60, 80, 110), panel, width=2, border_radius=10)
 
-        sub_surf = font.render("System Settings & Controls", True, (135, 242, 255))
-        screen.blit(sub_surf, sub_surf.get_rect(center=(center_x, 135)))
+    _state["option_rects"] = []
+    for index, label in enumerate(_state["options"]):
+        button = pygame.Rect(panel.x + 45, panel.y + 45 + index * 105, panel.width - 90, 70)
+        _state["option_rects"].append(button)
+        selected = index == _state["selected_index"]
+        pygame.draw.rect(screen, (30, 45, 65) if selected else (22, 30, 45), button, border_radius=8)
+        pygame.draw.rect(screen, (135, 242, 255) if selected else (60, 80, 110), button, width=2 if selected else 1, border_radius=8)
+        if body_font:
+            text = body_font.render(("> " if selected else "  ") + label, True, (255, 255, 255) if selected else (190, 200, 215))
+            screen.blit(text, text.get_rect(center=button.center))
 
-    # 2. Options Settings Card Container
-    container_rect = pygame.Rect(center_x - 360, 180, 720, 460)
-    pygame.draw.rect(screen, (18, 24, 36), container_rect, border_radius=10)
-    pygame.draw.rect(screen, (60, 80, 110), container_rect, width=2, border_radius=10)
-
-    if font:
-        start_y = 220
-        spacing = 55
-
-        # Item 1: Window Resolution
-        res_label = font.render("RESOLUTION:", True, (200, 200, 200))
-        res_val = font.render(f"{config.Screen.Size.w} x {config.Screen.Size.h}", True, (135, 242, 255))
-        screen.blit(res_label, (container_rect.x + 30, start_y))
-        screen.blit(res_val, (container_rect.x + 355, start_y))
-
-        # Item 2: Sprite Scaling
-        scale_label = font.render("SPRITE SCALING:", True, (200, 200, 200))
-        scale_val = font.render(f"{config.SPRITE_SCALING}x", True, (135, 242, 255))
-        screen.blit(scale_label, (container_rect.x + 30, start_y + spacing))
-        screen.blit(scale_val, (container_rect.x + 475, start_y + spacing))
-
-        # Item 3: Debug Mode Toggle
-        dbg_label = font.render("DEBUG OVERLAY:", True, (200, 200, 200))
-        dbg_val_str = "[ON]" if config.debug else "[OFF]"
-        dbg_val_color = (50, 168, 82) if config.debug else (166, 51, 51)
-        dbg_val = font.render(dbg_val_str, True, dbg_val_color)
-        
-        dbg_row_rect = pygame.Rect(container_rect.x + 20, start_y + 2 * spacing - 8, 680, 42)
-        _state["debug_rect"] = dbg_row_rect
-        
-        if _state["hover_item"] == "debug":
-            pygame.draw.rect(screen, (30, 45, 65), dbg_row_rect, border_radius=6)
-            pygame.draw.rect(screen, (135, 242, 255), dbg_row_rect, width=1, border_radius=6)
-
-        screen.blit(dbg_label, (container_rect.x + 30, start_y + 2 * spacing))
-        screen.blit(dbg_val, (container_rect.x + 440, start_y + 2 * spacing))
-
-        # Divider line
-        div_y = start_y + 3 * spacing + 10
-        pygame.draw.line(screen, (60, 80, 110), (container_rect.x + 30, div_y), (container_rect.x + 690, div_y), 2)
-
-        # Section: Controls Reference
-        ctrl_hdr = font.render("CONTROLS REFERENCE", True, (219, 212, 53))
-        screen.blit(ctrl_hdr, (container_rect.x + 30, div_y + 20))
-
-        controls_list = [
-            ("MOVE SHIP", "W/A/S/D"),
-            ("SHOOT", "SPACE/Z"),
-            ("DEBUG TOGGLE", "F12"),
-            ("RESTART RUN", "R"),
-        ]
-
-        for idx, (action, key_name) in enumerate(controls_list):
-            row_y = div_y + 60 + idx * 35
-            act_surf = font.render(action, True, (160, 175, 195))
-            key_surf = font.render(key_name, True, (255, 255, 255))
-            screen.blit(act_surf, (container_rect.x + 30, row_y))
-            screen.blit(key_surf, (container_rect.x + 500, row_y))
-
-    # 3. Bottom Back Button
-    back_rect = pygame.Rect(center_x - 120, config.Screen.Size.h - 80, 240, 44)
-    _state["back_rect"] = back_rect
-
-    is_hover = (_state["hover_item"] == "back")
-    bg_col = (45, 30, 35) if is_hover else (30, 25, 35)
-    border_col = (255, 135, 135) if is_hover else (135, 242, 255)
-
-    pygame.draw.rect(screen, bg_col, back_rect, border_radius=6)
-    pygame.draw.rect(screen, border_col, back_rect, width=1, border_radius=6)
-
-    if font:
-        back_surf = font.render("BACK", True, (255, 255, 255))
-        screen.blit(back_surf, back_surf.get_rect(center=back_rect.center))
+    if body_font:
+        helper = body_font.render("UP/DOWN OR W/S TO SELECT    ENTER TO CONFIRM", True, (135, 150, 170))
+        screen.blit(helper, helper.get_rect(center=(center_x, config.Screen.Size.h - 70)))
 
 
 class OptionsScene(BaseScene):
-    """Class wrapper for Options scene."""
-
     def load(self, *args, **kwargs):
         load(*args, **kwargs)
 
     def unload(self):
         unload()
 
-    def handle_event(self, event: pygame.event.Event):
+    def handle_event(self, event):
         handle_event(event, self.manager)
 
-    def update(self, dt: float = 1.0):
+    def update(self, dt=1.0):
         update(dt)
 
-    def draw(self, screen: pygame.Surface):
+    def draw(self, screen):
         draw(screen)

@@ -20,6 +20,57 @@ class SceneManager:
         self.fade_speed = 12
         self.fade_surface = pygame.Surface(screen.get_size()).convert()
         self.fade_surface.fill((0, 0, 0))
+        self.window_reload_requested = False
+        self.overlay_scene = None
+        self.scene_stack = []
+
+    def request_window_reload(self):
+        """Ask the game loop to recreate the display and reload its assets."""
+        self.window_reload_requested = True
+
+    def consume_window_reload_request(self) -> bool:
+        """Returns and clears a pending display reload request."""
+        requested = self.window_reload_requested
+        self.window_reload_requested = False
+        return requested
+
+    def replace_screen(self, screen: pygame.Surface):
+        """Attach the manager to a newly created pygame display surface."""
+        self.screen = screen
+        self.fade_surface = pygame.Surface(screen.get_size()).convert()
+        self.fade_surface.fill((0, 0, 0))
+
+    def show_overlay(self, scene):
+        """Show an input-blocking overlay without unloading the current scene."""
+        if self.overlay_scene is None:
+            self.overlay_scene = scene
+            scene.manager = self
+            scene.load()
+
+    def close_overlay(self):
+        """Close the active overlay and resume the current scene."""
+        if self.overlay_scene:
+            self.overlay_scene.unload()
+            self.overlay_scene = None
+
+    def push_scene(self, scene):
+        """Temporarily replace the scene while preserving it for a later return."""
+        if self.current_scene:
+            self.scene_stack.append(self.current_scene)
+        self.current_scene = scene
+        scene.manager = self
+        scene.load()
+
+    def has_previous_scene(self) -> bool:
+        return bool(self.scene_stack)
+
+    def pop_scene(self):
+        """Discard the temporary scene and restore the preserved one."""
+        if not self.scene_stack:
+            return
+        if self.current_scene:
+            self.current_scene.unload()
+        self.current_scene = self.scene_stack.pop()
 
     def set_scene(self, scene, fade: bool = True, fade_speed: int = 12, *args, **kwargs):
         """Switches to a new scene, optionally with a smooth fade transition."""
@@ -44,7 +95,9 @@ class SceneManager:
         """Pass events to the current scene (unless fading out)."""
         if self.fading and self.fade_mode == 'out':
             return  # Block input during fade out transition
-        if self.current_scene:
+        if self.overlay_scene:
+            self.overlay_scene.handle_event(event)
+        elif self.current_scene:
             self.current_scene.handle_event(event)
 
     def update(self, dt: float = 1.0):
@@ -69,14 +122,19 @@ class SceneManager:
                     self.fading = False
                     self.fade_mode = None
 
-        if self.current_scene:
+        if self.current_scene and not self.overlay_scene:
             self.current_scene.update(dt)
+        if self.overlay_scene:
+            self.overlay_scene.update(dt)
 
     def draw(self, screen: pygame.Surface = None):
         """Draw current scene and overlay fade effect if transitioning."""
         target_screen = screen or self.screen
         if self.current_scene:
             self.current_scene.draw(target_screen)
+
+        if self.overlay_scene:
+            self.overlay_scene.draw(target_screen)
 
         if self.fading and self.fade_alpha > 0:
             self.fade_surface.set_alpha(int(self.fade_alpha))

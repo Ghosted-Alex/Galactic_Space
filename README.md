@@ -6,9 +6,10 @@
 
 This repository archives game versions, showcases upcoming features, and serves as the home for `Project: Galaxy`.
 
-> [!NOTE] Platform Compatibility
-> The dedicated Makey Makey implementation is currently limited to the MakeCode Arcade version. However, controller support for the Pygame port is actively planned and under development.
-
+> [!NOTE]
+> NOTE ON PLATFORM COMPATIBILITY:
+>
+> The dedicated makey makey implementation is currently limited to the MakeCode Arcade version. Controller support for the pygame port is not in development but is planned for a future release
 ---
 
 ## Licenses
@@ -20,10 +21,10 @@ This repository archives game versions, showcases upcoming features, and serves 
 
 ## Requirements
 
-|              | Minimum          | Recommended        |
-|--------------|:----------------:|:------------------:|
-| **Python**   | 3.10             | 3.13               |
-| **Pygame**   | 2.1.3            | 2.5.7              |
+|              | **Minimum** | **Recommended** |
+|--------------|:-----------:|:---------------:|
+| **Python**   |    3.10     |      3.13       |
+| **Pygame**   |    2.1.3    |      2.5.7      |
 
 ## Download & How to Play
 
@@ -48,10 +49,22 @@ There are 2 ways to play the Legacy MakeCode Arcade version
 
 You can go to the [releases on Github](https://github.com/Ghosted-Alex/Galactic_Space_Reborn/releases) or [Releases on GitLab](https://gitlab.com/ghostedalex/Galactic_Space_Reborn/-/releases) and click one of the releases and click `Galactic Space Beta #.#`
 
-> [!NOTE] Development Status
+> [!NOTE]
+> Development Status:
+>
 > This game is currently undergoing active development.
 > Please note that features are continuously being added and refined across multiple platforms.
-> I plan for a formal Beta release phase before moving to final public release.
+
+---
+
+> [!IMPORTANT]
+> I will be using a structured format to track both stable release builds and public beta milestones:
+>
+> * Release Builds:
+>   * `#.#-build.yyyymmdd`
+>     * Example: `1.0-build.20260820` (Release 1.0 build that was published on Augest 20 2026)
+>   * `#.#-beta.#`
+>     * Example: `1.0-beta.1` (Release 1.0 on its first beta iteration)
 
 ---
 
@@ -82,32 +95,23 @@ You can go to the [releases on Github](https://github.com/Ghosted-Alex/Galactic_
 
 ### Game Updates
 
-![Version Badge](https://img.shields.io/badge/Version-Dev_Build_8-green?style=plastic)
-![Update Badge](https://img.shields.io/badge/Update_Type-Major-red?style=plastic)
+![Version Badge](https://img.shields.io/badge/Version-1.0--beta.1-green?style=plastic)
+![Update Badge](https://img.shields.io/badge/Update_Type-Beta-purple?style=plastic)
 
-#### Major Gameplay Overhaul and Visual Refresh and Menus
+- **Added**: 
+  - Added Animations
+  - Added Cutscenes
+  - Added Resource Packs
+- **Changes**:
+  - Updated Loading Screen Visuals
+  - Updated Title Screen Visuals
+- **Bug Fixes**
+  - Fixed a Crash when Hitting a Game Over on High Score
+  - Fixed a rendering bug of shooting a bullet
 
-- **Pre-Game Experience**: Added a dedicated splash screen sequence before game loading for better player onboarding and immersion.
-- **Enhanced Scale**: Expanded the game window size to provide significantly more room for maneuvering and spectacular battles.
-- **Horizontal Playfield**: Pivoted the entire gameplay experience from vertical to a sprawling horizontal layout, allowing for complex arena combat.
-- **Visual Polish**: Complete sprite redesigns were implemented to seamlessly accommodate the new horizontal orientation and enhanced visual effects.
-- **Improved Loading**: Major overhaul of asset parsing and loading routines, resulting in dramatically faster startup times and smoother transitions.
-- **More Screens**: Added more menus such as the title menu, options menu, and play menu.
 
 ---
 
 **Want to know the technical details?** For a comprehensive breakdown of all additions, changes, and removals, please refer to the full changelog below:
 
 ### [Full Changelog](./FULL_CHANGELOG.md)
-
-<!-- ---
-
-#### REPO UPDATES
-
-- Added `FULL_CHANGELOG.md`
-
-> [!NOTE]
-> Repo Updates are only included if major updates to the repo take place,
-> please note that the new `FULL_CHANGELOG.md` file will NOT
-> include repo updates and the `Game Updates` section will be maxed out at 5 bulletpoints,
-> the rest will be put into `FULL_CHANGELOG.md` file. -->

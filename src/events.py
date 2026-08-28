@@ -32,9 +32,10 @@ def spawn_enemy(enemies: list) -> None:
     Args:
         enemies: The live enemies list from the game loop.
     """
-    enemy_chance = random.randint(0, 2)
-    shield = (enemy_chance == 2)
-    new_enemy = entity.Enemy(1000, random.randint(48, 816), enemy_chance, shield=shield)
+    enemy_chance = random.randint(0, 2 if states.difficulty >= 1.0 else 1)
+    shield = (enemy_chance == 2) if states.difficulty >= 1.0 else False
+
+    new_enemy = entity.Enemy(1000, random.randint(48, config.Screen.Size.h - 48), enemy_chance, shield=shield)
     enemies.append(new_enemy)
 
 
@@ -50,20 +51,20 @@ def spawn_powerup(chance: int, player, powerups: list) -> None:
         powerups: The live powerups list from the game loop.
     """
     # Health Wrench -- 15% base chance when player isn't full health
-    if player.health <= 95 and 1 <= chance <= 15:
-        print("Wrench Powerup Summoned!")
-        new_powerup = powerup.Spawn(1000, random.randint(48, 816), 0)
+    if not states.powerup_active and player.health <= 95 and 1 <= chance <= 15:
+        print("Wrench powerup Summoned!")
+        new_powerup = powerup.Spawn(1000, random.randint(48, config.Screen.Size.h-48), 0)
         powerups.append(new_powerup)
 
     # Energy Cell -- 10% base chance when player isn't full energy
-    elif player.energy <= 95 and 16 <= chance <= 25:
-        print("Energy Powerup Summoned!")
+    elif not states.powerup_active and player.energy <= 95 and 16 <= chance <= 25:
+        print("Energy powerup Summoned!")
         new_powerup = powerup.Spawn(1000, random.randint(48, 816), 2)
         powerups.append(new_powerup)
 
     # Power Wrench (Invincibility) -- 5% flat chance, only if no powerup is active
     elif not states.powerup_active and 50 <= chance <= 55:
-        print("Power Wrench Powerup Summoned!")
+        print("Power Wrench powerup Summoned!")
         new_powerup = powerup.Spawn(1000, random.randint(48, 816), 1)
         powerups.append(new_powerup)
 
@@ -86,14 +87,14 @@ def on_shoot(player, effects: list, bullets: list) -> bool:
     Returns:
         True if a bullet was successfully fired, False if energy was too low.
     """
-    if player.energy > 0:
+    if player.energy > 5:
         # Create bullet
         new_bullet = bullet.Normal(player.rect.centerx, player.rect.centery)
         bullets.append(new_bullet)
         
         # Create and add effect slightly in front of the player
         # Adjust '+ 20' to match your player width
-        new_effect = animation.ShootEffect(player.rect.right, player.rect.centery - 16)
+        new_effect = animation.ShootEffect(player.rect.right-10, player.rect.centery+10)
         effects.append(new_effect)
         
         assets.Sounds.player_shoot.play()

@@ -18,6 +18,10 @@ class Textures:
     player1 = None
     player2 = None
     player3 = None
+
+    invincibility_charge = None
+
+    player_variant_invincible = None
     
     # enemy
     enemy0 = None
@@ -52,6 +56,7 @@ class Textures:
     difficulty3 = None
     difficulty4 = None
     difficulty5 = None
+    title = None
 
 class Sounds:
     entity_damage = None
@@ -64,6 +69,7 @@ class Sounds:
 
 class Music:
     invincibility = None
+    invincibility_full_draft = None
 
 def load_music(
     song: str | pathlib.Path, 
@@ -79,25 +85,25 @@ def load_music(
         pygame.mixer.music.play(0, start=start, fade_ms=fade)
 
 def resolve_asset_path(relative_path: str | pathlib.Path) -> pathlib.Path:
-    """Resolves an asset file path using the mod engine if available, or defaulting to vanilla."""
+    """Resolves an asset file path through the active resource pack, then vanilla."""
     try:
-        from . import mod
-        if mod is not None and hasattr(mod, "resolve_asset_path"):
-            return mod.resolve_asset_path(relative_path)
+        from . import pack
+        if pack is not None:
+            return pack.resolve_asset_path(relative_path)
     except ImportError:
         pass
-    return pathlib.Path(config.WIN_PATH) / "assets" / relative_path
+    return pathlib.Path(config.DATA_PATH) / "assets" / relative_path
 
 def get_merged_manifest() -> dict:
-    """Gets merged manifest via the mod engine if available, or loads vanilla manifest directly."""
+    """Gets the active resource-pack manifest merged over the vanilla manifest."""
     try:
-        from . import mod
-        if mod is not None and hasattr(mod, "get_merged_manifest"):
-            return mod.get_merged_manifest()
+        from . import pack
+        if pack is not None:
+            return pack.get_merged_manifest()
     except ImportError:
         pass
 
-    vanilla_base = pathlib.Path(config.WIN_PATH)
+    vanilla_base = pathlib.Path(config.DATA_PATH)
     vanilla_manifest_path = vanilla_base / "manifest.json"
     with open(vanilla_manifest_path, "r") as f:
         vanilla_data = json.load(f)
@@ -125,15 +131,17 @@ def load_assets_generator():
     loaded_count = 0
 
     # 1. INITIALIZE FONT
-    global pressStart2P
-    font_path = resolve_asset_path("fonts/PressStart2P-Regular.ttf")
-    pressStart2P = pygame.font.Font(str(font_path), 30)
+    global pressStart2P, monocraft
+    press_start_font_path = resolve_asset_path("fonts/PressStart2P-Regular.ttf")
+    monocraft_font_path = resolve_asset_path("fonts/Monocraft.ttf")
+    pressStart2P = pygame.font.Font(str(press_start_font_path), 30)
+    monocraft = pygame.font.Font(str(monocraft_font_path), 30)
     loaded_count += 1
-    yield int((loaded_count / total_items) * 100)
+    yield int((loaded_count / total_items) * 100), "Initializing Fonts..."
 
     # 2. STREAM TEXTURES
     for target_var, entry in texture_manifest.items():
-        time.sleep(random.random() / 5) # Smooth speed up for bar visibility
+        time.sleep(random.random() / 5)
         rel_path = entry["file"] if isinstance(entry, dict) and "file" in entry else entry
         custom_scale = entry.get("scale") if isinstance(entry, dict) else None
 
@@ -149,7 +157,8 @@ def load_assets_generator():
 
         setattr(Textures, target_var, scaled)
         loaded_count += 1
-        yield int((loaded_count / total_items) * 100)
+        # Yield percentage AND the current file/variable being loaded
+        yield int((loaded_count / total_items) * 100), f"Texture: {target_var}"
 
     # 3. STREAM SOUNDS
     for target_var, entry in sound_manifest.items():
@@ -168,7 +177,7 @@ def load_assets_generator():
         setattr(Sounds, target_var, sound)
 
         loaded_count += 1
-        yield int((loaded_count / total_items) * 100)
+        yield int((loaded_count / total_items) * 100), f"Sound: {target_var}"
 
     # 4. STREAM MUSIC
     for target_var, entry in music_manifest.items():
@@ -179,7 +188,7 @@ def load_assets_generator():
         setattr(Music, target_var, str(full_path))
 
         loaded_count += 1
-        yield int((loaded_count / total_items) * 100)
+        yield int((loaded_count / total_items) * 100), f"Music: {target_var}"
 
     # 5. LOAD UI PANELS
     panel_01_path = resolve_asset_path("textures/ui/panel/panel_01.png")
@@ -188,5 +197,7 @@ def load_assets_generator():
     Textures.panel_01 = pygame.image.load(panel_01_path).convert_alpha()
     Textures.panel_02 = pygame.image.load(panel_02_path).convert_alpha()
 
+    time.sleep(random.random() / 5)
+
     loaded_count += 1
-    yield 100
+    yield 100, "Finalizing UI Panels..."

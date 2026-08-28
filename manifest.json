@@ -1,12 +1,12 @@
 {
-    "format": {
-        "version": 1,
-        "manifest": {
-            "namespace": "gsr",
-            "name": "Galactic Space Reborn Vanilla Manifest",
-            "description": "This is the manifest file for vanilla Galactic Space Reborn, This can also be used in mods but needs to use a different namespace.",
-            "author": "Ghosted Alex"
-        }
+    "format_version": 1,
+    "manifest": {
+        "name": "Galactic Space Reborn Default Resource Pack",
+        "description": "This is the manifest file for vanilla Galactic Space Reborn, This can also be used in resource packs but can not have the 'assets' part of it unlike vanilla... also replace the UUID for the pack too as the UUID cannot share the vanilla pack's UUID",
+        "author": "Ghosted Alex",
+        "uuid": "84430edb-8f4b-4ea2-85c6-85da5f6ddf06",
+        "version": [0,0,1],
+        "min_engine_version": "1.0-beta.1"
     },
     "assets": {
         "textures": {
@@ -15,6 +15,7 @@
             "player1": "textures/player/player1.png",
             "player2": "textures/player/player2.png",
             "player3": "textures/player/player3.png",
+            "player_variant_invincible": "textures/player/variants/invincible.png",
             "enemy0": "textures/enemy/enemy0.png",
             "enemy1": {
                 "file": "textures/enemy/enemy1.png",
@@ -51,14 +52,18 @@
             },
             "title": {
                 "file": "textures/ui/title.png",
-                "scale": 8
+                "scale": 3
             },
             "difficulty0": "textures/ui/difficulty/difficulty0.png",
             "difficulty1": "textures/ui/difficulty/difficulty1.png",
             "difficulty2": "textures/ui/difficulty/difficulty2.png",
             "difficulty3": "textures/ui/difficulty/difficulty3.png",
             "difficulty4": "textures/ui/difficulty/difficulty4.png",
-            "difficulty5": "textures/ui/difficulty/difficulty5.png"
+            "difficulty5": "textures/ui/difficulty/difficulty5.png",
+            "invincibility_charge": {
+                "file": "textures/player/animation/player0/invincibility_charge.png",
+                "scale": 1
+            }
         },
         "audio": {
             "sound": {
@@ -80,7 +85,8 @@
                 }
             },
             "music": {
-                "invincibility": "music/invincibility.wav"
+                "invincibility": "music/invincibility.wav",
+                "invincibility_full_draft": "music/invincibility_full_draft.wav"
             }
         }
     }

@@ -10,3 +10,5 @@ health_blink_timer = 60
 
 game_over = False
 game_over_ui_shown = False
+
+difficulty = 1

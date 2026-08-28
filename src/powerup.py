@@ -4,17 +4,23 @@ import config
 import pygame
 
 class Spawn:
-    def __init__(self, x: int, y: int, powerUpType: int):
+    def __init__(self, x: int, y: int, powerup_type: int):
         self.x = x
         self.y = y
-        self.type = powerUpType
+        self.type = powerup_type
 
+        # Fetch dynamically or fallback safely
         if self.type == 0:
-            self.image = assets.Textures.wrench
+            self.image = getattr(assets.Textures, 'wrench', None)
         elif self.type == 1:
-            self.image = assets.Textures.power_wrench
+            self.image = getattr(assets.Textures, 'power_wrench', None)
         elif self.type == 2:
-            self.image = assets.Textures.energy
+            self.image = getattr(assets.Textures, 'energy', None)
+
+        # Ultimate fallback if it's still somehow None
+        if self.image is None:
+            self.image = pygame.Surface((32, 32))
+            self.image.fill((255, 0, 255))
 
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
         self.speed = 3

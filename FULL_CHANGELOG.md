@@ -2,52 +2,76 @@
 
 ## Full Changelog
 
-![Version Badge](https://img.shields.io/badge/Version-Dev_Build_8-green)
-![Update Badge](https://img.shields.io/badge/Update_Type-Major-red)
+![Version Badge](https://img.shields.io/badge/Version-1.0--beta.1-green)
+![Update Badge](https://img.shields.io/badge/Update_Type-Beta-purple)
 
-### Dev Build 8 — Major Engine & Architecture Overhaul
+### 1.0-Beta.1 — Update Visuals & Fixed Bugs
 
-*This build includes a complete rewrite of core systems and substantial graphical overhauls.*
+> This beta for Release 1.0 includes some updates to some visuals and adds
+> several quality-of-life improvements, also fixes a game breaking bug!
 
-#### 🎮 Graphics, Audio & User Interface (UI/UX)
+### NEW FEATURES
+* Added Animations System
+* Added the beginning part to the Invincibility Theme
+* Added the Resource Pack API
+* Added the Resource Pack Selection Screen
+* Added a Pause Menu in game
 
-- **Pre-Roll Splash Screen**: Implemented pre-roll splash presentation (`show_pre_roll()`) configured dynamically via `manifest.json`. Supports press-any-key or click skipping for improved onboarding.
-- **Screen Resolution & Scaling**: Upgraded native screen resolution to **1072 × 861** px, updating the global `SPRITE_SCALING` constant to `3`.
-- **Asset Manifest Schema Overhaul**: The core manifest structure was upgraded to support greater flexibility and detail:
-  - **Texture Support**: Now accepts custom scaling factors (e.g., `"scale": float`).
-  - **Audio/Sound Support**: Entries now allow for custom volume levels (e.g., `"volume": float`).
-  - **New Asset Registrations**: Added manifest entries to support multiple player ship variants (`player0`–`3`), laser bolt types (`bullet0`–`3`), shooting effect (`effect_shoot`), and the UI pre-roll splash (`pre_roll`).
-- **Screens/Scenes**: Added the ability to add more menus/scenes and added a scene system, a few included are:
-  - **title**: A title scene.
-  - **options**: A scene to change options... more options will be included soon.
-  - **play/difficulty**: The scene that shows when Play Game button is pressed.
-  - **gameplay**: The scene where the actual game takes place.
+#### Invincibility Theme
+* Updated the Invincibility Theme to sound more filled and to add the beginning part
 
-#### ⚡ Event & Game Loop Refactoring
+#### Animations
+* Added the new Animations System
+> **Developer's Note**: The animations stuff was added but the API is not clean
+> to use, it will be cleaned up as the game develops but for now it is very
+> messy to use and there is no clean way to use it.
+* The Invincibility Power Up now shows a proper cutscene when interacted with
 
-*The core game loop logic was modularized by extracting key functions into an observable Event Bus.*
+#### Resource Pack API
+* Added the Resource Pack Selection Screen
+* Added the Resource Pack API
 
-- **Modular Event Bus (`src/events.py`)**: Extracted inline main loop logic into overridable event functions, centralizing control and improving testability:
-  - `events.spawn_enemy()` — Handles enemy spawning, formation logic, and type rolls.
-  - `events.spawn_powerup()` — Manages powerup drop chance evaluation.
-  - `events.on_shoot()` — Controls bullet creation, sound effects triggers, and energy deduction.
-  - `events.on_score_increment()` — Centralized score calculation logic and capping mechanism.
-  - `events.save_high_score()` / `events.load_high_score()` — Handles high score persistence across sessions.
-  - `events.on_game_over()` — Triggers death sound sequences and manages the game over state transition.
+> **Developer's Note**: I've added the Resource Pack API and currently in the
+> process of making the wiki for it as well as for the rest of the game. Be
+> aware that it will take a while to add everything necessary as not only
+> this is a new API, but I am also the solo developer making this whole thing.
+> I have added the Resource Pack Selection Screen, currently the game
+> restarts when you are applying a resource pack, that is due to the fact
+> that how I did the assets loading system doesn't allow for hot swapping
+> assets.
 
-#### 🔒 Security & Architecture Improvements
+### CHANGES
+#### UI
+* Loading Screen now shows what asset is loading at that time below the loading bar
+* Main Menu now has a `Resource Packs` button
+* Overhauled the Play screen to now have a `difficulty` button and a `Start Game` button
+* The `gameplay` scene now has a pause menu overlay and will now pause the game when `ESC` is pressed
+* Overhauled the Options Menu and now there is `Video` and `Music & Sounds` settings
+* Options menu now modifies a new `settings.json` file
+* Updated the title logo on the main menu and is now more detailed and uses a sprite now instead of text
 
-- **Vulnerability Remediation**: Completely removed all instances of `custom_executables` (pre/post/wrapper script subprocess execution) from launcher and validator to eliminate critical security vulnerabilities.
-- **Standalone Vanilla Execution**: Decoupled asset loading and core engine loops, allowing the game to run 100% standalone without dependency on `src/mod.py`.
-- **Advanced Mixin Features**: Expanded `MixinHelper` with explicit `RETURN` injection points and formalized the `@api.mixin.redirect()` decorator usage.
-- **Priority-Ordered Mixins**: Added support for priority dictionary entries in manifest mixin declarations (`{"file": "name", "priority": 10}`).
+#### Sprites
+* Main Menu now uses a sprite for the title logo instead of text
+* Updated 4th ship sprite to Teal, repurposing yellow for invincibility
 
----
+#### Technical Changes
+* There is a `@option_def` decorator for defining settings
+  * It is defined like this: `@option_def(<key>, <name>, <values>, <order>, <description>)`
+    * Example:
+      * ```python
+        @option_def("master_volume", "MASTER VOLUME", (0.0, 0.25, 0.5, 0.75, 1.0), order=0, description="Controls all game audio.")
+        ```
+* Resource Packs are now available in Beta, they are defined by a `manifest.json` file in the pack's directory, `assets/` folder is for overriding assets
+* Made the difficulty mechanic functional, and now it serves as a multiplier
+> **Developer's Note**: The Difficulty mechanic unlike in the original Microsoft
+> zMakeCode Arcade version does not go up expanentially but should go up 
+> linearly, also speed shouldn't be affected by difficulty anymore.
+### BUG FIXES
+* Fixed a crash bug where if you game over and get a high score, the game tries to call for a variable called `HIGH_SCORE_FILE` in the `src/stats.py` file where it actually is located in the `config.py` file
+* Fixed a bug where the shoot animation was not appearing at the correct part of the ship
 
-### Previous Structural Updates (Historical Changelog)
+### RESOURCE PACK DOCUMENTATION
 
-#### Major File & Directory Restructure (Pre-DevBuild_8)
-
-- Separated UI and Update logic into dedicated modules: `src/ui.py` and `src/update.py`.
-- Consolidated various source files (`animation.py`, `assets.py`, `bullet.py`, `entity.py`, `powerup.py`) into the central `src/` directory for better namespace management.
-- Structured the entire asset tree under a dedicated, organized `assets/` folder.
+Resource Pack Documentation will be coming soon.
+> **Developer's Note**: I am currently in the process of building the
+> documentation, thank you for your patience.

@@ -1,12 +1,14 @@
 """Update Module"""
 
+import pygame
+
 import config
-from . import stats
 from . import assets
 from . import clock
-from . import states
+from . import cutscenes
 from . import events
-import pygame
+from . import states
+
 
 def update_entities(enemies, bullets, powerups, player, screen=None):
     for e in enemies[:]:
@@ -29,7 +31,7 @@ def update_entities(enemies, bullets, powerups, player, screen=None):
                     events.on_score_increment(1)
                     if e in enemies: enemies.remove(e)
                     
-                if e.shield == True:
+                if e.shield:
                     if e.health == 1:
                         e.enemy_type = 0
                         e.shield = False
@@ -40,18 +42,18 @@ def update_entities(enemies, bullets, powerups, player, screen=None):
             
         # Check Player Collision
         if e.rect.colliderect(player.rect):
-            if player.invincible == False:
+            if not player.invincible:
                 states.health_blink_timer = 0   
 
             assets.Sounds.entity_damage.play()
 
-            if player.invincible == False:
-                if config.difficulty == 0:
+            if not player.invincible:
+                if states.difficulty == 0:
                     player.health -= 10
                 else:
                     player.health -= 15
 
-            if e.shield == True:
+            if e.shield:
                 e.health -= 1
                 if e.health == 1:
                     e.enemy_type = 0
@@ -60,7 +62,7 @@ def update_entities(enemies, bullets, powerups, player, screen=None):
             else:
                 if e in enemies: enemies.remove(e)
 
-            if player.invincible == True:
+            if player.invincible:
                 events.on_score_increment(1)
     
         if screen is not None:
@@ -89,14 +91,14 @@ def update_entities(enemies, bullets, powerups, player, screen=None):
                 pygame.mixer.Sound.play(assets.Sounds.player_health_gain)
                 config.health_blink_timer = 0
                 if player.health < 100:
-                    if config.difficulty == 0:
+                    if states.difficulty == 0:
                         player.health += 10
                     else:
                         player.health += 5
             if p.type == 2:
                 pygame.mixer.Sound.play(assets.Sounds.player_power_gain)
                 if player.energy < 100:
-                    if config.difficulty == 0:
+                    if states.difficulty == 0:
                         player.energy += 10
                     else:
                         player.energy += 5
@@ -104,12 +106,8 @@ def update_entities(enemies, bullets, powerups, player, screen=None):
                 states.health_blink_timer = 0
                 if player.health < 100:
                     player.health = 100
-                states.powerup_timer = 16
-                player.invincible = True
-                states.powerup_active = True
-                assets.load_music(assets.Music.invincibility, "wav")
-                pygame.mixer.music.play()
-                states.powerup_type_text = "Invincibility"
+                cutscenes.run_invincibility_cutscene(player)
+                powerups.clear()
     
             if p in powerups: powerups.remove(p)
 

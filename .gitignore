@@ -37,8 +37,14 @@ build/
 # Misc Files
 *.txt
 
+# Misc Folder Contents
+resource_packs/*
+
 # Exceptions
 !requirements.txt
 
 # Exlude
 excluded/
+
+# Configurations
+settings.json

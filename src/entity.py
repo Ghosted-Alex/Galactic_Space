@@ -3,6 +3,8 @@
 import pygame
 
 from . import assets
+from . import states
+
 import config
 
 class Player:
@@ -16,9 +18,10 @@ class Player:
         self.energy = 100
         self.texture = None
         self.invincible = False
+        self.color = color
 
         # Logic to pick texture based on the 'color' (color/type) argument
-        if color == 0:
+        if self.color == 0:
             self.texture = assets.Textures.player0
             print("Texture Set Blue")
         else:
@@ -72,6 +75,17 @@ class Player:
         if self.rect.bottom > config.Screen.Size.h-45:
             self.rect.bottom = config.Screen.Size.h-45
 
+    def update_appearance(self):
+        if self.invincible:
+            self.texture = assets.Textures.player_variant_invincible
+        else:
+            if self.color == 0:
+                self.texture = assets.Textures.player0
+                print("Texture Set Blue")
+            else:
+                self.texture = assets.Textures.player_blank
+                print("Texture Set None")
+
 class Enemy:
     def __init__(self, x: int, y: int, enemy_type: int, shield: bool = False):
         self.x = x
@@ -80,17 +94,52 @@ class Enemy:
         self.enemy_type = enemy_type
         self.isAlive = True
         self.shield = shield
-        
+        self.difficulty = states.difficulty
+
+        # {"name": "EASY", "texture": "difficulty0", "multiplier": 0.75, "color": (70, 160, 255)}
+        # {"name": "NORMAL", "texture": "difficulty1", "multiplier": 1.0, "color": (60, 220, 200)}
+        # {"name": "MEDIUM", "texture": "difficulty2", "multiplier": 1.25, "color": (60, 210, 90)}
+        # {"name": "HARD", "texture": "difficulty3", "multiplier": 1.5, "color": (245, 210, 45)}
+        # {"name": "INSANE", "texture": "difficulty4", "multiplier": 1.75, "color": (255, 140, 35)}
+        # {"name": "GALACTIC", "texture": "difficulty5", "multiplier": 2.0, "color": (255, 65, 65)}
+
         if self.enemy_type == 0:
             self.image = assets.Textures.enemy0
-            self.health = 1
-        elif self.enemy_type == 1:
+            if 0.75 <= self.difficulty <= 1.25:
+                self.health = 1
+            elif 1.5 <= self.difficulty <= 1.75:
+                self.health = 2
+                self.enemy_type = 2
+                self.shield = True
+            elif self.difficulty == 2:
+                self.health = 3
+                self.enemy_type = 2
+                self.shield = True
+
+        if self.enemy_type == 1:
             self.image = assets.Textures.enemy1
-            self.health = 1
-        elif self.enemy_type == 2:
+            if 0.75 <= self.difficulty <= 1.25:
+                self.health = 1
+            elif 1.5 <= self.difficulty <= 1.75:
+                self.health = 2
+                self.enemy_type = 2
+                self.shield = True
+            elif self.difficulty == 2:
+                self.health = 3
+                self.enemy_type = 2
+                self.shield = True
+
+        if self.enemy_type == 2:
             self.image = assets.Textures.enemy0
-            self.health = 3
-        
+            if self.difficulty <= 1.25:
+                self.health = 3
+            elif 1.5 <= self.difficulty <= 1.75:
+                self.health = 5
+            elif self.difficulty == 2:
+                self.health = 7
+
+        print(f"{self.enemy_type} summoned with health {self.health}")
+
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
         
         self.max_health = self.health

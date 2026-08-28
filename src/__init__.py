@@ -1,11 +1,23 @@
 """Extends from main.py"""
 
-from . import animation, assets, bullet, controls, entity, events, powerup, ui, update, starfield, stats, clock, states
+from . import (animation,
+               assets,
+               bullet,
+               controls,
+               entity,
+               events,
+               powerup,
+               ui,
+               update,
+               starfield,
+               stats,
+               clock,
+               states)
 
 try:
-    from . import mod
+    from . import pack
 except ImportError:
-    mod = None
+    pack = None
 
 __all__ = [
     animation,
@@ -23,5 +35,5 @@ __all__ = [
     states
 ]
 
-if mod is not None:
-    __all__.append(mod)
+if pack is not None:
+    __all__.append(pack)

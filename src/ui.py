@@ -101,7 +101,7 @@ def draw_game_over_ui(screen):
             display_high_score = display_score # Update local display variable for this frame
 
             # Save to file safely (Write mode 'w', not Read mode 'r'!)
-            with open(stats.high_score_FILE, "w") as file:
+            with open(config.HIGH_SCORE_FILE, "w") as file:
                 file.write(str(stats.high_score))
         else:
             print(f"Regular Score (Score: {display_score}, Hi Score: {display_high_score})")
@@ -112,10 +112,12 @@ def draw_game_over_ui(screen):
         # If they just beat it, or if it's currently equal because we just updated it above
         score_go_str = assets.pressStart2P.render("New High Score!", True, (255, 180, 0))
     else:
-        score_go_str = assets.pressStart2P.render(f"SCORE: {display_score}", True, (255, 255, 255))
-    hi_score_go_str = assets.pressStart2P.render(f"HIGH SCORE: {display_high_score}", True, (255, 255, 255))
+        score_go_str = assets.pressStart2P.render(f"SCORE: {display_score:07d}", True, (255, 255, 255))
 
-    ins_restart = assets.pressStart2P.render(f"Press \"{pygame.key.name(config.KeyBinds.General.reset, False)}\" to Restart Game", True, (255, 255, 255))
+    hi_score_go_str = assets.pressStart2P.render(f"HIGH SCORE: {display_high_score:07d}", True, (255, 255, 255))
+
+    ins_reset = assets.pressStart2P.render(f"Press \"{pygame.key.name(config.KeyBinds.General.reset, False)}\" to Reset Game", True, (255, 255, 255))
+    ins_quit = assets.pressStart2P.render(f"Press \"{pygame.key.name(config.KeyBinds.General.escape, False)}\" to go back to title", True, (255, 255, 255))
 
     game_over_str = assets.pressStart2P.render('GAME OVER!', True, (251, 242, 54))
 
@@ -123,7 +125,8 @@ def draw_game_over_ui(screen):
     screen.blit(game_over_str, (368, 225))
     screen.blit(score_go_str, (209, 275))
     screen.blit(hi_score_go_str, (209, 315))
-    screen.blit(ins_restart, (145, 500))
+    screen.blit(ins_reset, (145, 500))
+    screen.blit(ins_quit, (145, 600))
 
 def draw_panel_ui(screen, player):
     panel_rect = assets.Textures.panel_02.get_rect(topleft=(config.Screen.Size.w-246, config.Screen.Size.h-195))
@@ -174,9 +177,9 @@ def draw_panel_ui(screen, player):
 
     VISIBLE_X = config.Screen.Size.w - 246
     HIDDEN_X = config.Screen.Size.w
-
-    score_str = assets.pressStart2P.render(f"{stats.score}", True, (255,255,255))
-    high_score_str = assets.pressStart2P.render(f"{stats.high_score}", True, (255,255,255))
+    # 1000000
+    score_str = assets.pressStart2P.render(f"{stats.score:07d}", True, (255,255,255))
+    high_score_str = assets.pressStart2P.render(f"{stats.high_score:07d}", True, (255,255,255))
 
     if player.rect.colliderect(panel_rect):
         # SLIDE TO HIDE
@@ -255,24 +258,3 @@ def draw_panel_ui(screen, player):
     if states.powerup_timer > 0:
         if config.debug:
             screen.blit(timer_str, (20, 20))
-
-    # =========================================================================
-    # DYNAMIC MOD INJECTION LAYER: Precise Config Adaptive Text
-    # =========================================================================    
-    if "CUSTOM_TEXT" in _CUSTOM_UI_REGISTRY:
-        for text_id, text_cfg in _CUSTOM_UI_REGISTRY["CUSTOM_TEXT"].items():
-            raw_string = text_cfg.get("text", "")
-            color = text_cfg.get("color", (255, 255, 255))
-
-            if raw_string:
-                text_surface = assets.pressStart2P.render(raw_string, True, color)
-
-                # Securely evaluate coordinates via config references
-                target_x = eval_safe_coordinate(text_cfg.get("x", 0), config.Screen.Size.w // 2)
-                target_y = eval_safe_coordinate(text_cfg.get("y", 0), config.Screen.Size.h // 2)
-
-                # Fetch text bounding metrics and position its center exactly at coordinates
-                text_rect = text_surface.get_rect(center=(target_x, target_y))
-
-                # Render elements safely to the active canvas
-                screen.blit(text_surface, text_rect)
